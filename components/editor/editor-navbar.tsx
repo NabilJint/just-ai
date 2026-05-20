@@ -3,6 +3,7 @@
 import React from "react"
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { UserButton } from "@clerk/nextjs"
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean
@@ -31,7 +32,12 @@ export default function EditorNavbar({
           )}
         </Button>
         <span className="font-feather text-heading-sm text-primary flex items-center gap-2 select-none uppercase tracking-wide">
-          <span className="text-duo-green">●</span> Ghost AI
+          <img
+            src="/favicon.png"
+            alt="Ghost AI Logo"
+            className="size-5 rounded-md"
+          />
+          Ghost AI
         </span>
       </div>
 
@@ -44,7 +50,14 @@ export default function EditorNavbar({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        {/* Intentionally left empty per specs for future actions */}
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: "size-8 rounded-xl border border-border",
+              userButtonTrigger: "rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-duo-green",
+            }
+          }}
+        />
       </div>
     </header>
   )

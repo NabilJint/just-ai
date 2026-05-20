@@ -1,10 +1,11 @@
 "use client"
 
 import React from "react"
-import { X, Plus, FolderGit2, Users } from "lucide-react"
+import { X, Plus, FolderGit2, Users, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { useProjectDialogs } from "@/hooks/use-project-dialogs"
 
 interface ProjectSidebarProps {
   isOpen: boolean
@@ -15,6 +16,14 @@ export default function ProjectSidebar({
   isOpen,
   onClose,
 }: ProjectSidebarProps) {
+  const { openDialog } = useProjectDialogs()
+
+  const mockProjects = [
+    { id: "1", name: "Global Payment Gateway", slug: "global-payment-gateway", isOwned: true },
+    { id: "2", name: "E-commerce Engine", slug: "e-commerce-engine", isOwned: true },
+    { id: "3", name: "AI Agent Orchestrator", slug: "ai-agent-orchestrator", isOwned: false },
+  ]
+
   return (
     <>
       {/* Backdrop (closes sidebar on outside click, floats above canvas but below sidebar) */}
@@ -66,51 +75,110 @@ export default function ProjectSidebar({
             </TabsTrigger>
           </TabsList>
 
-          {/* Empty Placeholder State: My Projects */}
+          {/* My Projects List */}
           <TabsContent
             value="my-projects"
-            className="flex-1 flex flex-col justify-center items-center p-6 text-center space-y-4 min-h-0 mt-4 outline-none"
+            className="flex-1 flex flex-col gap-2 mt-4 outline-none"
           >
-            <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
-              <FolderGit2 className="size-8 stroke-[1.5]" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">
-                No projects yet
-              </h3>
-              <p className="text-caption text-text-muted max-w-[220px] font-din-round">
-                Create a new system design architecture to start pair programming with Antigravity.
-              </p>
-            </div>
+            {mockProjects.filter(p => p.isOwned).map(project => (
+              <div
+                key={project.id}
+                className="group relative p-3 rounded-xl bg-bg-elevated border border-border hover:border-duo-green/50 transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <FolderGit2 className="size-4 text-text-muted group-hover:text-duo-green transition-colors" />
+                  <span className="text-caption font-medium text-text-secondary group-hover:text-text-primary font-din-round uppercase tracking-wide">
+                    {project.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 rounded-lg text-text-muted hover:text-duo-green transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDialog("rename", project.name);
+                    }}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 rounded-lg text-text-muted hover:text-red-500 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDialog("delete");
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {mockProjects.filter(p => p.isOwned).length === 0 && (
+              <div className="flex flex-col justify-center items-center p-6 text-center space-y-4">
+                <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
+                  <FolderGit2 className="size-8 stroke-[1.5]" />
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">
+                    No projects yet
+                  </h3>
+                  <p className="text-caption text-text-muted max-w-[220px] font-din-round">
+                    Create a new system design architecture to start pair programming with Antigravity.
+                  </p>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
-          {/* Empty Placeholder State: Shared */}
+          {/* Shared Projects List */}
           <TabsContent
             value="shared"
-            className="flex-1 flex flex-col justify-center items-center p-6 text-center space-y-4 min-h-0 mt-4 outline-none"
+            className="flex-1 flex flex-col gap-2 mt-4 outline-none"
           >
-            <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
-              <Users className="size-8 stroke-[1.5]" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">
-                No shared designs
-              </h3>
-              <p className="text-caption text-text-muted max-w-[220px] font-din-round">
-                Collaborative architecture designs shared with you by other creators will appear here.
-              </p>
-            </div>
+            {mockProjects.filter(p => !p.isOwned).map(project => (
+              <div
+                key={project.id}
+                className="group relative p-3 rounded-xl bg-bg-elevated border border-border hover:border-duo-green/50 transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="size-4 text-text-muted group-hover:text-duo-green transition-colors" />
+                  <span className="text-caption font-medium text-text-secondary group-hover:text-text-primary font-din-round uppercase tracking-wide">
+                    {project.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Shared projects have no actions */}
+                </div>
+              </div>
+            ))}
+            {mockProjects.filter(p => !p.isOwned).length === 0 && (
+              <div className="flex flex-col justify-center items-center p-6 text-center space-y-4">
+                <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
+                  <Users className="size-8 stroke-[1.5]" />
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">
+                    No shared designs
+                  </h3>
+                  <p className="text-caption text-text-muted max-w-[220px] font-din-round">
+                    Collaborative architecture designs shared with you by other creators will appear here.
+                  </p>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-border bg-card shrink-0">
           <Button
-            className={cn(
-              "w-full bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold py-2.5 rounded-xl",
-              "flex items-center justify-center gap-2 cursor-pointer transition-all uppercase font-feather tracking-wider",
-              "shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none"
-            )}
+            onClick={() => openDialog("create")}
+            variant="primary3d"
+            className="w-full py-2.5"
           >
             <Plus className="size-4 stroke-[3]" />
             New Project
