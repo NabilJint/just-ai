@@ -4,23 +4,27 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Phase 2: Base Editor Chrome (In Progress)
+- Phase 3: Collaborative Canvas Integration (In Progress)
 
 ## Current Goal
 
-- Implement base chrome components (top navbar and left sidebar shell) with Sidebar toggle states, project tabs, and dialog integrations.
+- Implement the editor home screen, mock project dialogs (Create, Rename, Delete), and sidebar actions for the Ghost AI workspace.
 
 ## Completed
 
 - `01-design-system.md`: Installed and configured `shadcn/ui`, added components (Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea) with `@base-ui/react` support under Tailwind CSS v4, created `lib/utils.ts` with `cn()` and theme preference configurations, and integrated full dark-theme variables in `globals.css`.
+- `02.editor.md`: Created and stitched `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` inside the `/editor` page workspace with reactive toggle states, smooth backdrop closing, and tab layouts.
+- `03-auth.md`: Integrated Clerk Authentication across the entire codebase. Configured root layout with `<ClerkProvider>` overriding variables using dark system CSS variables, built custom responsive `/sign-in` and `/sign-up` split-panel interfaces, protected all routes by default using Next.js 16's root `proxy.ts` middleware, and wired `<UserButton />` into the editor header.
+- `Logo, Favicon & Authentication Fixes`: Re-generated a modern, high-quality neon-green and cyan glowing ghost mascot logo using AI, and deployed it as the app icon and favicon. Fixed a runtime `TypeError` in Next.js 16 `proxy.ts` middleware by correcting `await auth.protect()` to secure the `/editor` page against unauthenticated access. Integrated `afterSignOutUrl="/sign-in"` in `ClerkProvider` ([app/layout.tsx]) to guarantee an instant redirection to `/sign-in` upon logging out.
+- `04-project-dialog.md`: Implemented the Editor Home screen, custom project dialogs (Create, Rename, Delete) using mock data, and sidebar actions.
 
 ## In Progress
 
-- `02.editor.md`: Creating `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` with sidebar state toggle, shadcn Tabs, empty placeholders, and Dialog patterns.
+- Phase 3: Initial canvas scaffolding and socket integrations.
 
 ## Next Up
 
-- Phase 3: Collaborative Canvas Integration
+- Dynamic node rendering and multi-user editing canvas.
 
 ## Open Questions
 
