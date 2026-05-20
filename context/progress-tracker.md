@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Implement the editor home screen, mock project dialogs (Create, Rename, Delete), and sidebar actions for the Ghost AI workspace.
+- Establish the collaborative canvas component framework with dynamic node mapping, custom cursor synchronization, and canvas persistence.
 
 ## Completed
 
@@ -16,7 +16,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - `02.editor.md`: Created and stitched `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` inside the `/editor` page workspace with reactive toggle states, smooth backdrop closing, and tab layouts.
 - `03-auth.md`: Integrated Clerk Authentication across the entire codebase. Configured root layout with `<ClerkProvider>` overriding variables using dark system CSS variables, built custom responsive `/sign-in` and `/sign-up` split-panel interfaces, protected all routes by default using Next.js 16's root `proxy.ts` middleware, and wired `<UserButton />` into the editor header.
 - `Logo, Favicon & Authentication Fixes`: Re-generated a modern, high-quality neon-green and cyan glowing ghost mascot logo using AI, and deployed it as the app icon and favicon. Fixed a runtime `TypeError` in Next.js 16 `proxy.ts` middleware by correcting `await auth.protect()` to secure the `/editor` page against unauthenticated access. Integrated `afterSignOutUrl="/sign-in"` in `ClerkProvider` ([app/layout.tsx]) to guarantee an instant redirection to `/sign-in` upon logging out.
-- `04-project-dialog.md`: Implemented the Editor Home screen, custom project dialogs (Create, Rename, Delete) using mock data, and sidebar actions.
+- `05-prisma.md`: Defined data models for `Project` and `ProjectCollaborator` with corresponding relations, cascade delete behavior, and database indexes. Configured `prisma/models/project.prisma`. Implemented `lib/prisma.ts` cached client singleton that correctly branches between Prisma Accelerate and direct `@prisma/adapter-pg` depending on the `DATABASE_URL`. Confirmed migration is active, generated client, and built successfully.
+
 
 ## In Progress
 
