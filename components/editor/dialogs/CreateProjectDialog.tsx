@@ -12,15 +12,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { UseProjectActionsResult } from "@/hooks/use-project-actions";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
-interface CreateProjectDialogProps {
-  projectActions: UseProjectActionsResult;
-}
+export default function CreateProjectDialog() {
 
-export default function CreateProjectDialog({
-  projectActions,
-}: CreateProjectDialogProps) {
+  const { confirmCreate } = useProjectActions();
+
   const {
     activeDialog,
     projectName,
@@ -29,8 +27,7 @@ export default function CreateProjectDialog({
     error,
     closeDialog,
     updateProjectName,
-    confirmCreate,
-  } = projectActions;
+  } = useProjectDialogs();
 
   if (activeDialog !== "create") return null;
 

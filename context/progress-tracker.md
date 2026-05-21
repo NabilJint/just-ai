@@ -22,11 +22,27 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
-- Phase 3: Initial canvas scaffolding and socket integrations.
+- Share Dialog: UI implemented and wired to navbar (In Progress)
+  - UI: `Share` button added to the editor navbar and opens the `ShareDialog` UI (placeholder list, invite input, copy link with temporary "Copied!" feedback).
+  - Next: implement backend APIs to list/invite/remove collaborators and enrich collaborator emails via Clerk Backend API. Enforce owner-only invite/remove server-side.
+  - UI: `Share` button added to the editor navbar and opens the `ShareDialog` UI. Dialog now calls new backend APIs to list, invite, and remove collaborators and shows Clerk-enriched names and avatars when available.
+  - Server: Added API endpoints at `app/api/projects/[projectId]/collaborators/route.ts` implementing `GET`, `POST`, and `DELETE`. Owner-only checks enforced for invite/remove.
+  - Build: Verified `npm run build` succeeds after adding Share Dialog and collaborators API.
+
+## Completed
+
+- `08-editor-workspace-shell.md`: Built `/editor/[roomId]` workspace shell with server-side access checks and layout scaffold. Created `lib/project-access.ts` with helpers to get current user (via Clerk API), check project access (by owner or email-based collaborator), and fetch accessible projects. Implemented `components/editor/access-denied.tsx` with centered lock icon and "Back to Projects" link. Integrated `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` into `components/editor/workspace-layout.tsx`, reusing the existing navbar and sidebar. Built central canvas placeholder and a right AI assistant sidebar sized to match the project sidebar. The page at `/editor/[roomId]` enforces auth, shows `AccessDenied` for missing/unauthorized projects, and renders the workspace layout for authorized users. Build passes.
 
 ## Next Up
 
-- Feature 08 (TBD)
+- Phase 3: Collaborative Canvas Integration (Scaffolding and socket integrations)
+
+## Session Notes
+
+- Started Share Dialog implementation planning (see [context/feature-specs/09-share-dialog.md](context/feature-specs/09-share-dialog.md)).
+- TODOs created and first task (Add Share button to editor navbar) marked in-progress.
+- Implemented `Share` button and added initial `ShareDialog` UI component. (See [components/editor/workspace-layout.tsx](components/editor/workspace-layout.tsx#L1) and [components/editor/dialogs/ShareDialog.tsx](components/editor/dialogs/ShareDialog.tsx#L1)).
+- Updated todo list: Share button completed, ShareDialog UI in-progress.
 
 ## Open Questions
 

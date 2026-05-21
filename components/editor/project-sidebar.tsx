@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import type { ProjectData } from "@/lib/project-helpers";
-import type { UseProjectActionsResult } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   ownedProjects: ProjectData[];
   sharedProjects: ProjectData[];
-  projectActions: UseProjectActionsResult;
+  currentProjectId?: string;
 }
 
 export default function ProjectSidebar({
@@ -22,8 +23,9 @@ export default function ProjectSidebar({
   onClose,
   ownedProjects,
   sharedProjects,
-  projectActions,
+  currentProjectId,
 }: ProjectSidebarProps) {
+  const { openDialog } = useProjectDialogs();
   return (
     <>
       {/* Backdrop (closes sidebar on outside click, floats above canvas but below sidebar) */}
@@ -87,13 +89,34 @@ export default function ProjectSidebar({
               {ownedProjects.length > 0 ? (
                 <div className="space-y-2 pr-4">
                   {ownedProjects.map((project) => (
-                    <div
+                    <Link
                       key={project.id}
-                      className="group relative p-3 rounded-xl bg-bg-elevated border border-border hover:border-duo-green/50 transition-colors cursor-pointer flex items-center justify-between"
+                      href={`/editor/${project.id}`}
+                      onClick={onClose}
+                      className={cn(
+                        "group relative block p-3 rounded-xl border transition-colors flex items-center justify-between",
+                        currentProjectId === project.id
+                          ? "bg-duo-green/10 border-duo-green/50 text-text-primary"
+                          : "bg-bg-elevated border-border hover:border-duo-green/50 text-text-secondary group-hover:text-text-primary",
+                      )}
                     >
                       <div className="flex items-center gap-3">
-                        <FolderGit2 className="size-4 text-text-muted group-hover:text-duo-green transition-colors" />
-                        <span className="text-caption font-medium text-text-secondary group-hover:text-text-primary font-din-round uppercase tracking-wide">
+                        <FolderGit2
+                          className={cn(
+                            "size-4 transition-colors",
+                            currentProjectId === project.id
+                              ? "text-duo-green"
+                              : "text-text-muted group-hover:text-duo-green",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "text-caption font-medium font-din-round uppercase tracking-wide",
+                            currentProjectId === project.id
+                              ? "text-text-primary"
+                              : "text-text-secondary group-hover:text-text-primary",
+                          )}
+                        >
                           {project.name}
                         </span>
                       </div>
@@ -104,11 +127,8 @@ export default function ProjectSidebar({
                           className="size-7 rounded-lg text-text-muted hover:text-duo-green transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            projectActions.openDialog(
-                              "rename",
-                              project.id,
-                              project.name,
-                            );
+                            e.preventDefault();
+                            openDialog("rename", project.id, project.name);
                           }}
                         >
                           <Pencil className="size-3.5" />
@@ -119,13 +139,14 @@ export default function ProjectSidebar({
                           className="size-7 rounded-lg text-text-muted hover:text-red-500 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            projectActions.openDialog("delete", project.id);
+                            e.preventDefault();
+                            openDialog("delete", project.id);
                           }}
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -155,17 +176,38 @@ export default function ProjectSidebar({
               {sharedProjects.length > 0 ? (
                 <div className="space-y-2 pr-4">
                   {sharedProjects.map((project) => (
-                    <div
+                    <Link
                       key={project.id}
-                      className="group relative p-3 rounded-xl bg-bg-elevated border border-border hover:border-duo-cyan/50 transition-colors cursor-pointer flex items-center justify-between"
+                      href={`/editor/${project.id}`}
+                      onClick={onClose}
+                      className={cn(
+                        "group relative block p-3 rounded-xl border transition-colors flex items-center justify-between",
+                        currentProjectId === project.id
+                          ? "bg-duo-cyan/10 border-duo-cyan/50 text-text-primary"
+                          : "bg-bg-elevated border-border hover:border-duo-cyan/50 text-text-secondary group-hover:text-text-primary",
+                      )}
                     >
                       <div className="flex items-center gap-3">
-                        <Users className="size-4 text-text-muted group-hover:text-duo-cyan transition-colors" />
-                        <span className="text-caption font-medium text-text-secondary group-hover:text-text-primary font-din-round uppercase tracking-wide">
+                        <Users
+                          className={cn(
+                            "size-4 transition-colors",
+                            currentProjectId === project.id
+                              ? "text-duo-cyan"
+                              : "text-text-muted group-hover:text-duo-cyan",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "text-caption font-medium font-din-round uppercase tracking-wide",
+                            currentProjectId === project.id
+                              ? "text-text-primary"
+                              : "text-text-secondary group-hover:text-text-primary",
+                          )}
+                        >
                           {project.name}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -190,7 +232,7 @@ export default function ProjectSidebar({
         {/* Footer - Create New Project Button */}
         <div className="border-t border-border p-4 shrink-0">
           <Button
-            onClick={() => projectActions.openDialog("create")}
+            onClick={() => openDialog("create")}
             variant="primary3d"
             className="w-full py-3 px-4 rounded-xl text-sm font-medium"
           >

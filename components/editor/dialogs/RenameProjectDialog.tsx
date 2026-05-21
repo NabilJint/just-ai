@@ -11,15 +11,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { UseProjectActionsResult } from "@/hooks/use-project-actions";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
-interface RenameProjectDialogProps {
-  projectActions: UseProjectActionsResult;
-}
-
-export default function RenameProjectDialog({
-  projectActions,
-}: RenameProjectDialogProps) {
+export default function RenameProjectDialog() {
   const {
     activeDialog,
     projectName,
@@ -28,8 +23,9 @@ export default function RenameProjectDialog({
     error,
     closeDialog,
     updateProjectName,
-    confirmRename,
-  } = projectActions;
+  } = useProjectDialogs();
+
+  const { confirmRename } = useProjectActions();
 
   if (activeDialog !== "rename") return null;
 
@@ -84,7 +80,7 @@ export default function RenameProjectDialog({
             Cancel
           </Button>
           <Button
-            onClick={confirmRename}
+            onClick={() => confirmRename()}
             disabled={!projectName || !projectSlug || isLoading}
             className="bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold rounded-xl px-6 shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:pointer-events-none font-feather uppercase tracking-wider text-caption"
           >

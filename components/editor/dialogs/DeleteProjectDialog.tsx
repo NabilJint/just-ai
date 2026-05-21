@@ -11,17 +11,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { UseProjectActionsResult } from "@/hooks/use-project-actions";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
-interface DeleteProjectDialogProps {
-  projectActions: UseProjectActionsResult;
-}
-
-export default function DeleteProjectDialog({
-  projectActions,
-}: DeleteProjectDialogProps) {
-  const { activeDialog, isLoading, error, closeDialog, confirmDelete } =
-    projectActions;
+export default function DeleteProjectDialog() {
+  const { activeDialog, isLoading, error, closeDialog } = useProjectDialogs();
+  const { confirmDelete } = useProjectActions();
 
   if (activeDialog !== "delete") return null;
 
@@ -64,7 +59,7 @@ export default function DeleteProjectDialog({
             Cancel
           </Button>
           <Button
-            onClick={confirmDelete}
+            onClick={() => confirmDelete()}
             disabled={isLoading}
             variant="destructive3d"
             className="px-6 font-feather uppercase tracking-wider text-caption"
