@@ -43,8 +43,26 @@ export async function POST(request: Request) {
     // No body or invalid JSON — use default name
   }
 
+  function toSlug(s: string) {
+    return s
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function shortSuffix(): string {
+    return Math.random().toString(36).slice(2, 6);
+  }
+
+  const base = toSlug(name || "untitled-project");
+  const id = `${base}-${shortSuffix()}`;
+
   const project = await prisma.project.create({
     data: {
+      id,
       ownerId: userId,
       name,
     },

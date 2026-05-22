@@ -34,23 +34,33 @@ export async function fetchUserProjects(): Promise<{
   });
 
   // Fetch shared projects (through collaborators)
-  const sharedProjects = await prisma.projectCollaborator.findMany({
-    where: {
-      email: {
-        not: undefined, // User email would be passed, but for now we use basic filter
-      },
-    },
-    include: {
-      project: {
-        select: {
-          id: true,
-          name: true,
-          ownerId: true,
+  let userEmail = "";
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+  } catch (error) {
+    console.error("Failed to fetch Clerk user email for shared projects", error);
+  }
+
+  const sharedProjects = userEmail
+    ? await prisma.projectCollaborator.findMany({
+        where: {
+          email: userEmail,
         },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+              ownerId: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
 
   const owned: ProjectData[] = ownedProjects.map((p) => ({
     ...p,
@@ -62,7 +72,8 @@ export async function fetchUserProjects(): Promise<{
       ...cp.project,
       isOwned: false,
     }))
-    .filter((p, idx, arr) => arr.findIndex((x) => x.id === p.id) === idx); // Deduplicate
+    .filter((p) => p.ownerId !== userId)
+    .filter((p, idx, arr) => arr.findIndex((x) => x.id === p.id) === idx);
 
   return { owned, shared };
 }

@@ -26,6 +26,19 @@ export default function ProjectSidebar({
   currentProjectId,
 }: ProjectSidebarProps) {
   const { openDialog } = useProjectDialogs();
+
+  const isCurrentProjectShared = React.useMemo(() => {
+    return sharedProjects.some((p) => p.id === currentProjectId);
+  }, [sharedProjects, currentProjectId]);
+
+  const [activeTab, setActiveTab] = React.useState<string>(
+    isCurrentProjectShared ? "shared" : "my-projects"
+  );
+
+  React.useEffect(() => {
+    setActiveTab(isCurrentProjectShared ? "shared" : "my-projects");
+  }, [currentProjectId, isCurrentProjectShared]);
+
   return (
     <>
       {/* Backdrop (closes sidebar on outside click, floats above canvas but below sidebar) */}
@@ -40,9 +53,11 @@ export default function ProjectSidebar({
       {/* Sidebar Shell Container */}
       <aside
         className={cn(
-          "absolute top-0 left-0 h-full w-[320px] bg-card border-r border-border z-40",
-          "flex flex-col shadow-2xl transition-transform duration-300 ease-in-out select-none",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "absolute top-0 left-0 h-full w-[320px] bg-card/90 backdrop-blur-md border-r border-border z-40",
+          "flex flex-col shadow-2xl transition-all duration-300 ease-in-out select-none",
+          isOpen
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-full opacity-0 pointer-events-none",
         )}
       >
         {/* Header */}
@@ -62,7 +77,8 @@ export default function ProjectSidebar({
 
         {/* Content Tabs */}
         <Tabs
-          defaultValue="my-projects"
+          value={activeTab}
+          onValueChange={setActiveTab}
           className="flex-1 flex flex-col min-h-0 p-4"
         >
           <TabsList className="grid grid-cols-2 bg-bg-elevated p-1 rounded-xl shrink-0">
@@ -129,6 +145,7 @@ export default function ProjectSidebar({
                             e.stopPropagation();
                             e.preventDefault();
                             openDialog("rename", project.id, project.name);
+                            console.log("Edit");
                           }}
                         >
                           <Pencil className="size-3.5" />
@@ -152,7 +169,7 @@ export default function ProjectSidebar({
               ) : (
                 <div className="flex flex-col justify-center items-center p-6 text-center space-y-4">
                   <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
-                    <FolderGit2 className="size-8 stroke-[1.5]" />
+                    <FolderGit2 className="size-10 stroke-[1.5]" />
                   </div>
                   <div className="space-y-1.5">
                     <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">
@@ -179,12 +196,16 @@ export default function ProjectSidebar({
                     <Link
                       key={project.id}
                       href={`/editor/${project.id}`}
-                      onClick={onClose}
+                      onClick={() => {
+                        if (typeof window !== "undefined" && window.innerWidth < 768) {
+                          onClose();
+                        }
+                      }}
                       className={cn(
                         "group relative block p-3 rounded-xl border transition-colors flex items-center justify-between",
                         currentProjectId === project.id
-                          ? "bg-duo-cyan/10 border-duo-cyan/50 text-text-primary"
-                          : "bg-bg-elevated border-border hover:border-duo-cyan/50 text-text-secondary group-hover:text-text-primary",
+                          ? "bg-sky-blue/10 border-sky-blue/50 text-text-primary"
+                          : "bg-bg-elevated border-border hover:border-sky-blue/50 text-text-secondary group-hover:text-text-primary",
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -192,8 +213,8 @@ export default function ProjectSidebar({
                           className={cn(
                             "size-4 transition-colors",
                             currentProjectId === project.id
-                              ? "text-duo-cyan"
-                              : "text-text-muted group-hover:text-duo-cyan",
+                              ? "text-sky-blue"
+                              : "text-text-muted group-hover:text-sky-blue",
                           )}
                         />
                         <span
@@ -213,7 +234,7 @@ export default function ProjectSidebar({
               ) : (
                 <div className="flex flex-col justify-center items-center p-6 text-center space-y-4">
                   <div className="p-4 bg-bg-elevated rounded-2xl text-text-muted border border-border">
-                    <Users className="size-8 stroke-[1.5]" />
+                    <Users className="size-10 stroke-[1.5]" />
                   </div>
                   <div className="space-y-1.5">
                     <h3 className="text-body font-bold text-text-primary font-din-round tracking-wide uppercase">

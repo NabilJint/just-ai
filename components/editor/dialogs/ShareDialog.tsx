@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +11,26 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Copy, UserPlus, UserMinus } from "lucide-react";
+import { Copy, UserPlus, UserMinus, UserRound } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
+import { useProjectShare } from "@/hooks/use-project-share";
+import { cn } from "@/lib/utils";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getProfileInitial(name: string | null, email: string) {
+  return (name?.trim()[0] ?? email.trim()[0] ?? "?").toUpperCase();
+}
+
+interface ShareProject {
+  id: string;
+  ownerId: string;
+}
 
 interface ShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project: any;
+  project: ShareProject;
 }
 
 export default function ShareDialog({
@@ -29,10 +42,18 @@ export default function ShareDialog({
   const isOwner = !!user && user.id === project?.ownerId;
 
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteError, setInviteError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [collaborators, setCollaborators] = useState<Array<any>>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    collaborators,
+    isLoading,
+    error,
+    inviteCollaborator,
+    removeCollaborator,
+    inviteLoading,
+    removingEmail,
+  } = useProjectShare(project.id);
 
   const handleCopyLink = async () => {
     const url = `${window.location.origin}/editor/${project.id}`;
@@ -45,75 +66,27 @@ export default function ShareDialog({
     }
   };
 
-  const handleInvite = () => {
-    if (!inviteEmail) return;
-    setError(null);
-    setLoading(true);
-    fetch(`/api/projects/${project.id}/collaborators`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: inviteEmail }),
-    })
-      .then(async (res) => {
-        setLoading(false);
-        if (res.ok) {
-          const data = await res.json();
-          setCollaborators((s) => [...s, data]);
-          setInviteEmail("");
-        } else {
-          const body = await res.json().catch(() => ({}));
-          setError(body?.error || "Invite failed");
-        }
-      })
-      .catch(() => {
-        setLoading(false);
-        setError("Invite failed");
-      });
-  };
+  const handleInvite = async () => {
+    const email = inviteEmail.trim();
 
-  const handleRemove = (email: string) => {
-    setError(null);
-    setLoading(true);
-    fetch(`/api/projects/${project.id}/collaborators`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    })
-      .then(async (res) => {
-        setLoading(false);
-        if (res.ok) {
-          setCollaborators((s) => s.filter((c) => c.email !== email));
-        } else {
-          const body = await res.json().catch(() => ({}));
-          setError(body?.error || "Remove failed");
-        }
-      })
-      .catch(() => {
-        setLoading(false);
-        setError("Remove failed");
-      });
-  };
+    if (!email) return;
 
-  useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    setError(null);
-    fetch(`/api/projects/${project.id}/collaborators`)
-      .then(async (res) => {
-        setLoading(false);
-        if (res.ok) {
-          const data = await res.json();
-          setCollaborators(data || []);
-        } else {
-          const body = await res.json().catch(() => ({}));
-          setError(body?.error || "Failed to load collaborators");
-        }
-      })
-      .catch(() => {
-        setLoading(false);
-        setError("Failed to load collaborators");
-      });
-  }, [open, project?.id]);
+    if (!EMAIL_PATTERN.test(email)) {
+      setInviteError("Enter a valid email address.");
+      return;
+    }
+
+    const result = await inviteCollaborator(email);
+    if (result.success) {
+      setInviteEmail("");
+      setInviteError("");
+      return;
+    }
+
+    if (result.error) {
+      setInviteError(result.error);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onOpenChange(false)}>
@@ -137,18 +110,24 @@ export default function ShareDialog({
               <Input
                 placeholder="alice@example.com"
                 value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+                onChange={(e) => {
+                  setInviteEmail(e.target.value);
+                  setInviteError("");
+                }}
                 className="rounded-xl h-11 bg-bg-elevated border-border text-text-primary placeholder:text-text-muted/50"
               />
               <Button
                 onClick={handleInvite}
-                disabled={!isOwner || !inviteEmail}
+                disabled={!isOwner || !inviteEmail.trim() || inviteLoading}
                 className="rounded-xl"
                 variant="ghost"
               >
                 <UserPlus className="size-4" />
               </Button>
             </div>
+            {inviteError && (
+              <p className="text-caption text-state-error">{inviteError}</p>
+            )}
             {!isOwner && (
               <p className="text-caption text-text-muted">
                 Only owners can invite collaborators.
@@ -179,12 +158,12 @@ export default function ShareDialog({
             </div>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <label className="text-caption font-bold text-text-primary uppercase tracking-wider font-din-round">
               Collaborators
             </label>
             <div className="mt-2 p-3 bg-bg-elevated rounded-2xl border border-border">
-              {loading && (
+              {isLoading && (
                 <div className="text-caption text-text-muted">
                   Loading collaborators...
                 </div>
@@ -192,7 +171,7 @@ export default function ShareDialog({
               {error && (
                 <div className="text-caption text-red-500">{error}</div>
               )}
-              {!loading && collaborators.length === 0 && (
+              {!isLoading && collaborators.length === 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="size-8 rounded-full bg-bg-muted" />
@@ -213,26 +192,46 @@ export default function ShareDialog({
                 </div>
               )}
 
-              {!loading && collaborators.length > 0 && (
+              {!isLoading && collaborators.length > 0 && (
                 <div className="space-y-3">
                   {collaborators.map((c) => (
-                    <div
-                      key={c.id}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
+                    <div key={c.id} className="flex items-center justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
                         {c.avatar ? (
                           <img
                             src={c.avatar}
                             alt={c.displayName || c.email}
-                            className="size-8 rounded-full"
+                            className="size-13 shrink-0 rounded-full border border-border-subtle object-cover"
                           />
                         ) : (
-                          <div className="size-8 rounded-full bg-bg-muted" />
+                          <div className="flex size-13 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-accent-dim text-text-brand">
+                            <span className="sr-only">
+                              {c.displayName || c.email}
+                            </span>
+                            {c.displayName || c.email ? (
+                              <span className="font-din-round text-body font-bold">
+                                {getProfileInitial(c.displayName, c.email)}
+                              </span>
+                            ) : (
+                              <UserRound className="size-5" aria-hidden="true" />
+                            )}
+                          </div>
                         )}
-                        <div>
-                          <div className="text-body text-text-primary">
-                            {c.displayName || c.email}
+                        <div className="flex min-w-0 flex-col">
+                          <div className="flex items-center gap-2">
+                            <span className="text-body text-text-primary">
+                              {c.displayName || c.email}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter font-din-round",
+                                c.role === "owner"
+                                  ? "bg-duo-green/20 text-duo-green"
+                                  : "bg-bg-muted text-text-muted",
+                              )}
+                            >
+                              {c.role}
+                            </span>
                           </div>
                           <div className="text-caption text-text-muted">
                             {c.email}
@@ -242,9 +241,13 @@ export default function ShareDialog({
                       <div>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          disabled={!isOwner}
-                          onClick={() => handleRemove(c.email)}
+                          size="icon"
+                          disabled={
+                            !isOwner ||
+                            c.role === "owner" ||
+                            removingEmail === c.email
+                          }
+                          onClick={() => removeCollaborator(c.email)}
                         >
                           <UserMinus className="size-4" />
                         </Button>
