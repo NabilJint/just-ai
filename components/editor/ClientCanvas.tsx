@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo, type CSSProperties } from "react";
+import React, { useCallback, useMemo, useEffect, useState } from "react";
+import { Maximize2, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 // lightweight local error boundary to avoid adding an external dependency
 interface SimpleErrorBoundaryProps {
   fallback: React.ReactNode;
@@ -36,20 +37,29 @@ import {
   LiveblocksProvider,
   RoomProvider,
   ClientSideSuspense,
+  useCanRedo,
+  useCanUndo,
+  useRedo,
+  useUndo,
 } from "@liveblocks/react/suspense";
 import {
   Background,
   BackgroundVariant,
   ConnectionMode,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  MarkerType,
+  type EdgeTypes,
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
 import ShapePanel from "./ShapePanel";
 import { CanvasShapeNode } from "./nodes/CanvasShapeNodes";
+import { CanvasEdgeComponent } from "./edges/CanvasEdge";
+import StarterTemplatesModal from "./starter-templates-modal";
+import { type CanvasTemplate } from "./starter-templates";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { generateNodeId } from "@/lib/node-id";
 import {
   DEFAULT_NODE_COLOR,
@@ -82,6 +92,22 @@ const nodeTypes = {
   hexagon: CanvasShapeNode,
   canvasNode: CanvasShapeNode,
 } satisfies NodeTypes;
+
+const edgeTypes = {
+  canvasEdge: CanvasEdgeComponent,
+} satisfies EdgeTypes;
+
+const defaultEdgeOptions = {
+  type: "canvasEdge",
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    width: 14,
+    height: 14,
+    color: "rgba(255,255,255,0.38)",
+  },
+};
+
+const viewportAnimation = { duration: 160 };
 
 function readShapePayload(dataTransfer: DataTransfer): ShapeDragPayload | null {
   const jsonPayload = dataTransfer.getData("application/json");
@@ -119,154 +145,6 @@ function readShapePayload(dataTransfer: DataTransfer): ShapeDragPayload | null {
   return null;
 }
 
-function getMiniMapShape(node: CanvasNode) {
-  if (isCanvasNodeShape(node.type ?? "")) {
-    return node.type as CanvasNodeShape;
-  }
-
-  return node.data?.shape ?? "rectangle";
-}
-
-interface MiniMapShapeNodeProps {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color?: string;
-  strokeColor?: string;
-  strokeWidth?: number;
-  selected?: boolean;
-  className?: string;
-  style?: CSSProperties;
-  onClick?: (event: React.MouseEvent<SVGElement>, id: string) => void;
-}
-
-function getMiniMapShapeFromClassName(className?: string) {
-  const shape = className
-    ?.split(" ")
-    .find((name) => name.startsWith("minimap-shape-"))
-    ?.replace("minimap-shape-", "");
-
-  return shape && isCanvasNodeShape(shape) ? shape : "rectangle";
-}
-
-function MiniMapShapeNode({
-  id,
-  x,
-  y,
-  width,
-  height,
-  color,
-  strokeColor,
-  strokeWidth = 1,
-  selected,
-  className,
-  onClick,
-}: MiniMapShapeNodeProps) {
-  const shape = getMiniMapShapeFromClassName(className);
-  const fill = color ?? DEFAULT_NODE_COLOR.minimap;
-  const stroke = strokeColor ?? DEFAULT_NODE_COLOR.stroke;
-  const effectiveStrokeWidth = selected ? strokeWidth + 1 : strokeWidth;
-  const clickProps = onClick
-    ? { onClick: (event: React.MouseEvent<SVGElement>) => onClick(event, id) }
-    : {};
-
-  if (shape === "diamond") {
-    return (
-      <polygon
-        points={`${x + width / 2},${y} ${x + width},${y + height / 2} ${
-          x + width / 2
-        },${y + height} ${x},${y + height / 2}`}
-        fill={fill}
-        stroke={stroke}
-        strokeWidth={effectiveStrokeWidth}
-        className={className}
-        {...clickProps}
-      />
-    );
-  }
-
-  if (shape === "circle") {
-    return (
-      <ellipse
-        cx={x + width / 2}
-        cy={y + height / 2}
-        rx={width / 2}
-        ry={height / 2}
-        fill={fill}
-        stroke={stroke}
-        strokeWidth={effectiveStrokeWidth}
-        className={className}
-        {...clickProps}
-      />
-    );
-  }
-
-  if (shape === "cylinder") {
-    const ellipseHeight = Math.max(2, Math.min(10, height * 0.22));
-
-    return (
-      <g className={className} {...clickProps}>
-        <path
-          d={`M${x} ${y + ellipseHeight / 2} C${x} ${y} ${x + width} ${y} ${
-            x + width
-          } ${y + ellipseHeight / 2} V${y + height - ellipseHeight / 2} C${
-            x + width
-          } ${y + height} ${x} ${y + height} ${x} ${
-            y + height - ellipseHeight / 2
-          } Z`}
-          fill={fill}
-          stroke={stroke}
-          strokeWidth={effectiveStrokeWidth}
-        />
-        <ellipse
-          cx={x + width / 2}
-          cy={y + ellipseHeight / 2}
-          rx={width / 2}
-          ry={ellipseHeight / 2}
-          fill={fill}
-          stroke={stroke}
-          strokeWidth={effectiveStrokeWidth}
-        />
-      </g>
-    );
-  }
-
-  if (shape === "hexagon") {
-    return (
-      <polygon
-        points={`${x + width * 0.25},${y} ${x + width * 0.75},${y} ${
-          x + width
-        },${y + height / 2} ${x + width * 0.75},${y + height} ${
-          x + width * 0.25
-        },${y + height} ${x},${y + height / 2}`}
-        fill={fill}
-        stroke={stroke}
-        strokeWidth={effectiveStrokeWidth}
-        className={className}
-        {...clickProps}
-      />
-    );
-  }
-
-  return (
-    <rect
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      rx={shape === "pill" ? height / 2 : 3}
-      ry={shape === "pill" ? height / 2 : 3}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={effectiveStrokeWidth}
-      className={className}
-      {...clickProps}
-    />
-  );
-}
-
 function CanvasFlow({
   nodes,
   edges,
@@ -275,7 +153,34 @@ function CanvasFlow({
   onConnect,
   onDelete,
 }: ReturnType<typeof useLiveblocksFlow<CanvasNode, CanvasEdge>>) {
-  const { screenToFlowPosition } = useReactFlow<CanvasNode, CanvasEdge>();
+  const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
+  const undo = useUndo();
+  const redo = useRedo();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
+  const { screenToFlowPosition } = reactFlow;
+
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenTemplates = () => setIsTemplatesOpen(true);
+    window.addEventListener("open-starter-templates", handleOpenTemplates);
+    return () =>
+      window.removeEventListener("open-starter-templates", handleOpenTemplates);
+  }, []);
+
+  const handleImportTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      setIsTemplatesOpen(false);
+      reactFlow.setNodes(template.nodes);
+      reactFlow.setEdges(template.edges);
+      
+      setTimeout(() => {
+        void reactFlow.fitView({ padding: 0.2, duration: viewportAnimation.duration });
+      }, 50);
+    },
+    [reactFlow]
+  );
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -315,6 +220,36 @@ function CanvasFlow({
     [onNodesChange, screenToFlowPosition],
   );
 
+  const handleZoomOut = useCallback(() => {
+    void reactFlow.zoomOut(viewportAnimation);
+  }, [reactFlow]);
+
+  const handleFitView = useCallback(() => {
+    void reactFlow.fitView({ duration: viewportAnimation.duration, padding: 0.2 });
+  }, [reactFlow]);
+
+  const handleZoomIn = useCallback(() => {
+    void reactFlow.zoomIn(viewportAnimation);
+  }, [reactFlow]);
+
+  const handleUndo = useCallback(() => {
+    if (canUndo) {
+      undo();
+    }
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) {
+      redo();
+    }
+  }, [canRedo, redo]);
+
+  useKeyboardShortcuts({
+    reactFlow,
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+  });
+
   return (
     <div className="relative h-full w-full bg-bg-base">
       <ReactFlow
@@ -327,31 +262,76 @@ function CanvasFlow({
         fitView
         connectionMode={ConnectionMode.Loose}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
-        <MiniMap
-          bgColor="var(--bg-surface)"
-          maskColor="color-mix(in srgb, var(--bg-base) 68%, transparent)"
-          nodeStrokeColor={(node) => {
-            const shape = getMiniMapShape(node as CanvasNode);
-            return (node as CanvasNode).data?.color?.stroke ?? NODE_COLORS[shape].stroke;
-          }}
-          nodeColor={(node) => {
-            const shape = getMiniMapShape(node as CanvasNode);
-            return (node as CanvasNode).data?.color?.minimap ?? NODE_COLORS[shape].minimap;
-          }}
-          nodeClassName={(node) => {
-            const shape = getMiniMapShape(node as CanvasNode);
-            return `minimap-shape-${shape}`;
-          }}
-          nodeComponent={MiniMapShapeNode}
-        />
         <Cursors />
         <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} />
       </ReactFlow>
 
+      <div className="absolute bottom-28 left-6 z-50">
+        <div className="flex items-center gap-1 rounded-full border border-border bg-bg-elevated/90 px-2 py-2 text-text-secondary backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            title="Zoom out"
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={handleFitView}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            title="Fit view"
+            aria-label="Fit view"
+          >
+            <Maximize2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            title="Zoom in"
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          <div className="mx-1 h-6 w-px bg-border" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-35"
+            title="Undo"
+            aria-label="Undo"
+          >
+            <Undo2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-35"
+            title="Redo"
+            aria-label="Redo"
+          >
+            <Redo2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
       <ShapePanel />
+      <StarterTemplatesModal
+        open={isTemplatesOpen}
+        onOpenChange={setIsTemplatesOpen}
+        onImport={handleImportTemplate}
+      />
     </div>
   );
 }

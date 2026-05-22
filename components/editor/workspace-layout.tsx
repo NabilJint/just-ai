@@ -46,6 +46,11 @@ export default function WorkspaceLayout({
           projectName={project.name}
           onToggleAiChat={() => setIsAiOpen(!isAiOpen)}
           onShare={() => setIsShareOpen(true)}
+          onOpenTemplates={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("open-starter-templates"));
+            }
+          }}
         />
 
         <ShareDialog

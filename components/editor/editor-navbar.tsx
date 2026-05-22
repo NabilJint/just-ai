@@ -6,6 +6,7 @@ import {
   PanelLeftClose,
   MessageCircle,
   Share2,
+  LayoutTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
@@ -16,6 +17,7 @@ interface EditorNavbarProps {
   projectName?: string;
   onToggleAiChat?: () => void;
   onShare?: () => void;
+  onOpenTemplates?: () => void;
 }
 
 export default function EditorNavbar({
@@ -24,6 +26,7 @@ export default function EditorNavbar({
   projectName = "Untitled System Design",
   onToggleAiChat,
   onShare,
+  onOpenTemplates,
 }: EditorNavbarProps) {
   return (
     <header className="h-14 w-full flex items-center justify-between px-4 border-b border-border bg-card select-none shrink-0 z-40">
@@ -63,6 +66,17 @@ export default function EditorNavbar({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        {onOpenTemplates && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenTemplates}
+            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer size-9"
+            title="Starter Templates"
+          >
+            <LayoutTemplate className="size-5" />
+          </Button>
+        )}
         {onToggleAiChat && (
           <Button
             variant="ghost"

@@ -425,14 +425,14 @@ export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
         onLabelChange={handleLabelChange}
         onEditingClose={() => setIsEditing(false)}
       />
-      <Handle id="source-top" type="source" position={Position.Top} className={HANDLE_CLASS} />
-      <Handle id="source-right" type="source" position={Position.Right} className={HANDLE_CLASS} />
-      <Handle id="source-bottom" type="source" position={Position.Bottom} className={HANDLE_CLASS} />
-      <Handle id="source-left" type="source" position={Position.Left} className={HANDLE_CLASS} />
       <Handle id="target-top" type="target" position={Position.Top} className={HANDLE_CLASS} />
       <Handle id="target-right" type="target" position={Position.Right} className={HANDLE_CLASS} />
       <Handle id="target-bottom" type="target" position={Position.Bottom} className={HANDLE_CLASS} />
       <Handle id="target-left" type="target" position={Position.Left} className={HANDLE_CLASS} />
+      <Handle id="source-top" type="source" position={Position.Top} className={HANDLE_CLASS} />
+      <Handle id="source-right" type="source" position={Position.Right} className={HANDLE_CLASS} />
+      <Handle id="source-bottom" type="source" position={Position.Bottom} className={HANDLE_CLASS} />
+      <Handle id="source-left" type="source" position={Position.Left} className={HANDLE_CLASS} />
     </div>
   );
 }
