@@ -6,6 +6,7 @@ import {
   DEFAULT_NODE_COLOR,
   isCanvasNodeShape,
   NODE_COLORS,
+  NODE_COLOR_PALETTE,
   type CanvasNode,
   type CanvasNodeColor,
   type CanvasNodeShape,
@@ -14,6 +15,17 @@ import {
 
 const HANDLE_CLASS =
   "h-2.5 w-2.5 border border-bg-base bg-text-primary opacity-0 transition-opacity group-hover:opacity-100";
+
+const COLOR_LABELS = [
+  "Neutral Dark",
+  "Blue",
+  "Purple",
+  "Orange",
+  "Red",
+  "Pink",
+  "Green",
+  "Teal",
+];
 
 interface ShapeBodyProps {
   shape: CanvasNodeShape;
@@ -280,6 +292,27 @@ export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
 
   const { setNodes } = useReactFlow();
   const [isEditing, setIsEditing] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const handleColorChange = useCallback(
+    (newColor: CanvasNodeColor) => {
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                color: newColor,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [id, setNodes]
+  );
 
   // Resize end handler to sync back the new dimensions to data.size and node width/height
   const handleResizeEnd = useCallback(
@@ -335,6 +368,46 @@ export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
 
   return (
     <div className="group relative" onDoubleClick={handleDoubleClick}>
+      {selected && (
+        <div 
+          className="nodrag nopan absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 flex items-center gap-1.5 p-1.5 rounded-full bg-bg-elevated/95 backdrop-blur border border-border-default shadow-lg shadow-black/40 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2"
+        >
+          {NODE_COLOR_PALETTE.map((paletteColor, idx) => {
+            const isColorActive = color.fill === paletteColor.fill;
+            const title = COLOR_LABELS[idx] ?? "";
+
+            return (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleColorChange(paletteColor);
+                }}
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-150 border border-white/10 relative focus:outline-none cursor-pointer ${
+                  isColorActive 
+                    ? "scale-110 ring-2 ring-white border-transparent" 
+                    : "hover:scale-105"
+                }`}
+                style={{
+                  background: paletteColor.fill,
+                  boxShadow: hoveredIndex === idx ? `0 0 8px 1.5px ${paletteColor.text}` : undefined
+                }}
+                onMouseEnter={() => setHoveredIndex(idx)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                title={title}
+              >
+                <span 
+                  className="w-1.5 h-1.5 rounded-full transition-transform" 
+                  style={{ 
+                    background: paletteColor.text,
+                    transform: isColorActive ? "scale(1.2)" : "scale(1)"
+                  }} 
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
       <NodeResizer
         isVisible={selected}
         minWidth={shape === "circle" ? 60 : 80}

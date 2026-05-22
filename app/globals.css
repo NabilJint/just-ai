@@ -61,6 +61,39 @@
   --input: var(--border-subtle);
   --ring: var(--accent-primary);
   --radius: 12px; /* Standard 12px brand border radius */
+
+  /* --- Canvas Node Color Palette --- */
+  --node-palette-neutral-fill: #1f1f1f;
+  --node-palette-neutral-text: #ededed;
+  --node-palette-neutral-stroke: #505060;
+
+  --node-palette-blue-fill: #10233d;
+  --node-palette-blue-text: #52a8ff;
+  --node-palette-blue-stroke: #52a8ff;
+
+  --node-palette-purple-fill: #2e1938;
+  --node-palette-purple-text: #bf7af0;
+  --node-palette-purple-stroke: #bf7af0;
+
+  --node-palette-orange-fill: #331b00;
+  --node-palette-orange-text: #ff990a;
+  --node-palette-orange-stroke: #ff990a;
+
+  --node-palette-red-fill: #3c1618;
+  --node-palette-red-text: #ff6166;
+  --node-palette-red-stroke: #ff6166;
+
+  --node-palette-pink-fill: #3a1726;
+  --node-palette-pink-text: #f75f8f;
+  --node-palette-pink-stroke: #f75f8f;
+
+  --node-palette-green-fill: #0f2e18;
+  --node-palette-green-text: #62c073;
+  --node-palette-green-stroke: #62c073;
+
+  --node-palette-teal-fill: #062822;
+  --node-palette-teal-text: #0ac7b4;
+  --node-palette-teal-stroke: #0ac7b4;
 }
 
 /* Enforce the identical theme in .dark to ensure dark mode toggles or preference wrappers are supported seamlessly */
@@ -118,6 +151,39 @@
   --border: var(--border-default);
   --input: var(--border-subtle);
   --ring: var(--accent-primary);
+
+  /* --- Canvas Node Color Palette --- */
+  --node-palette-neutral-fill: #1f1f1f;
+  --node-palette-neutral-text: #ededed;
+  --node-palette-neutral-stroke: #505060;
+
+  --node-palette-blue-fill: #10233d;
+  --node-palette-blue-text: #52a8ff;
+  --node-palette-blue-stroke: #52a8ff;
+
+  --node-palette-purple-fill: #2e1938;
+  --node-palette-purple-text: #bf7af0;
+  --node-palette-purple-stroke: #bf7af0;
+
+  --node-palette-orange-fill: #331b00;
+  --node-palette-orange-text: #ff990a;
+  --node-palette-orange-stroke: #ff990a;
+
+  --node-palette-red-fill: #3c1618;
+  --node-palette-red-text: #ff6166;
+  --node-palette-red-stroke: #ff6166;
+
+  --node-palette-pink-fill: #3a1726;
+  --node-palette-pink-text: #f75f8f;
+  --node-palette-pink-stroke: #f75f8f;
+
+  --node-palette-green-fill: #0f2e18;
+  --node-palette-green-text: #62c073;
+  --node-palette-green-stroke: #62c073;
+
+  --node-palette-teal-fill: #062822;
+  --node-palette-teal-text: #0ac7b4;
+  --node-palette-teal-stroke: #0ac7b4;
 }
 
 @theme {
