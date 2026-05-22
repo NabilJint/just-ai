@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React from "react"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import React from "react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -11,21 +11,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { useProjectDialogs } from "@/hooks/use-project-dialogs"
+} from "@/components/ui/dialog";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
 export default function CreateProjectDialog() {
+
+  const { confirmCreate } = useProjectActions();
+
   const {
     activeDialog,
     projectName,
     projectSlug,
     isLoading,
+    error,
     closeDialog,
     updateProjectName,
-    confirmProjectAction,
-  } = useProjectDialogs()
+  } = useProjectDialogs();
 
-  if (activeDialog !== "create") return null
+  if (activeDialog !== "create") return null;
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeDialog()}>
@@ -40,7 +44,8 @@ export default function CreateProjectDialog() {
             </DialogTitle>
           </div>
           <DialogDescription className="font-din-round text-caption text-text-muted">
-            Set up a new system design workspace. Your project will be accessible via a unique slug.
+            Set up a new system design workspace. Your project will be
+            accessible via a unique slug.
           </DialogDescription>
         </DialogHeader>
 
@@ -68,6 +73,12 @@ export default function CreateProjectDialog() {
           </div>
         </div>
 
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-caption text-red-500 font-din-round">{error}</p>
+          </div>
+        )}
+
         <DialogFooter className="flex gap-3 sm:justify-between">
           <Button
             variant="ghost"
@@ -77,7 +88,7 @@ export default function CreateProjectDialog() {
             Cancel
           </Button>
           <Button
-            onClick={confirmProjectAction}
+            onClick={confirmCreate}
             disabled={!projectName || !projectSlug || isLoading}
             className="bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold rounded-xl px-6 shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:pointer-events-none font-feather uppercase tracking-wider text-caption"
           >
@@ -86,5 +97,5 @@ export default function CreateProjectDialog() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

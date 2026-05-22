@@ -8,18 +8,23 @@ interface ProjectDialogState {
   activeDialog: DialogType | null
   projectName: string
   projectSlug: string
+  targetProjectId: string | null
   isLoading: boolean
+  error: string | null
 }
 
 interface ProjectDialogContextValue {
   activeDialog: DialogType | null
   projectName: string
   projectSlug: string
+  targetProjectId: string | null
   isLoading: boolean
-  openDialog: (type: DialogType, initialName?: string) => void
+  error: string | null
+  openDialog: (type: DialogType, projectId?: string, currentName?: string) => void
   closeDialog: () => void
   updateProjectName: (name: string) => void
-  confirmProjectAction: () => Promise<void>
+  setLoading: (loading: boolean) => void
+  setError: (error: string | null) => void
 }
 
 const ProjectDialogContext = createContext<ProjectDialogContextValue | undefined>(undefined)
@@ -29,19 +34,32 @@ export function ProjectDialogProvider({ children }: { children: React.ReactNode 
     activeDialog: null,
     projectName: "",
     projectSlug: "",
+    targetProjectId: null,
     isLoading: false,
+    error: null,
   })
 
-  const openDialog = useCallback((type: DialogType, initialName: string = "") => {
+  const slugify = useCallback((name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }, [])
 
-      
+  const openDialog = useCallback((type: DialogType, projectId?: string, currentName?: string) => {
+    const name = currentName || "";
     setState((prev) => ({
       ...prev,
       activeDialog: type,
-      projectName: initialName,
-      projectSlug: initialName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+      projectName: name,
+      projectSlug: slugify(name),
+      targetProjectId: projectId || null,
+      error: null,
     }))
-  }, [])
+  }, [slugify])
 
   const closeDialog = useCallback(() => {
     setState((prev) => ({
@@ -49,6 +67,8 @@ export function ProjectDialogProvider({ children }: { children: React.ReactNode 
       activeDialog: null,
       projectName: "",
       projectSlug: "",
+      targetProjectId: null,
+      error: null,
     }))
   }, [])
 
@@ -56,18 +76,17 @@ export function ProjectDialogProvider({ children }: { children: React.ReactNode 
     setState((prev) => ({
       ...prev,
       projectName: name,
-      projectSlug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+      projectSlug: slugify(name),
     }))
+  }, [slugify])
+
+  const setLoading = useCallback((loading: boolean) => {
+    setState((prev) => ({ ...prev, isLoading: loading }))
   }, [])
 
-  const confirmProjectAction = useCallback(async () => {
-    if (!state.projectSlug) return
-
-    setState((prev) => ({ ...prev, isLoading: true }))
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setState((prev) => ({ ...prev, isLoading: false }))
-    closeDialog()
-  }, [closeDialog])
+  const setError = useCallback((error: string | null) => {
+    setState((prev) => ({ ...prev, error }))
+  }, [])
 
   return (
     <ProjectDialogContext.Provider
@@ -76,7 +95,8 @@ export function ProjectDialogProvider({ children }: { children: React.ReactNode 
         openDialog,
         closeDialog,
         updateProjectName,
-        confirmProjectAction,
+        setLoading,
+        setError,
       }}
     >
       {children}

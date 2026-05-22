@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Pencil } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { useProjectDialogs } from "@/hooks/use-project-dialogs"
+} from "@/components/ui/dialog";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
 export default function RenameProjectDialog() {
   const {
@@ -19,12 +20,14 @@ export default function RenameProjectDialog() {
     projectName,
     projectSlug,
     isLoading,
+    error,
     closeDialog,
     updateProjectName,
-    confirmProjectAction,
-  } = useProjectDialogs()
+  } = useProjectDialogs();
 
-  if (activeDialog !== "rename") return null
+  const { confirmRename } = useProjectActions();
+
+  if (activeDialog !== "rename") return null;
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeDialog()}>
@@ -39,7 +42,11 @@ export default function RenameProjectDialog() {
             </DialogTitle>
           </div>
           <DialogDescription className="font-din-round text-caption text-text-muted">
-            You are renaming the project <span className="text-text-primary font-bold">{projectName || "Untitled"}</span>.
+            You are renaming the project{" "}
+            <span className="text-text-primary font-bold">
+              {projectName || "Untitled"}
+            </span>
+            .
           </DialogDescription>
         </DialogHeader>
 
@@ -53,10 +60,16 @@ export default function RenameProjectDialog() {
             className="rounded-xl h-11 bg-bg-elevated border-border text-text-primary placeholder:text-text-muted/50 focus:ring-duo-green"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter") confirmProjectAction()
+              if (e.key === "Enter") confirmRename();
             }}
           />
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-caption text-red-500 font-din-round">{error}</p>
+          </div>
+        )}
 
         <DialogFooter className="flex gap-3 sm:justify-between">
           <Button
@@ -67,7 +80,7 @@ export default function RenameProjectDialog() {
             Cancel
           </Button>
           <Button
-            onClick={confirmProjectAction}
+            onClick={() => confirmRename()}
             disabled={!projectName || !projectSlug || isLoading}
             className="bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold rounded-xl px-6 shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:pointer-events-none font-feather uppercase tracking-wider text-caption"
           >
@@ -76,5 +89,5 @@ export default function RenameProjectDialog() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
