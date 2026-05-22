@@ -9,6 +9,9 @@ import { Sparkles, PanelRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProjectData } from "@/lib/project-helpers";
 import ShareDialog from "./dialogs/ShareDialog";
+import CreateProjectDialog from "./dialogs/CreateProjectDialog";
+import RenameProjectDialog from "./dialogs/RenameProjectDialog";
+import DeleteProjectDialog from "./dialogs/DeleteProjectDialog";
 
 interface WorkspaceLayoutProps {
   project: any; // server-side Project model shape
@@ -45,6 +48,10 @@ export default function WorkspaceLayout({
           onOpenChange={(open: boolean) => setIsShareOpen(open)}
           project={project}
         />
+        {/* Project dialogs (must be inside the same ProjectDialogProvider) */}
+        <CreateProjectDialog />
+        <RenameProjectDialog />
+        <DeleteProjectDialog />
 
         <div className="flex-1 flex overflow-hidden relative">
           {/* Left Project Sidebar */}
