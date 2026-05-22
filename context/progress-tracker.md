@@ -28,6 +28,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `11-base-canvas.md`: Implementing the Liveblocks-backed React Flow canvas (client-side wrapper, shared types, and wiring). Initial scaffolding added: `types/canvas.ts`, `components/editor/ClientCanvas.tsx`, and the `/editor/[roomId]` page now renders the client canvas. Build validation passes.
 
 - `12-shape-panel.md`: Added bottom shape panel for drag-and-drop node creation. Implemented `components/editor/ShapePanel.tsx`, `lib/node-id.ts`, updated `components/editor/ClientCanvas.tsx` to handle dragover/drop with React Flow 12 `screenToFlowPosition`, create shape-typed nodes on drop, and render shape-specific rectangle, diamond, circle, pill, cylinder, and hexagon nodes. Fixed the minimap colors and infinite-canvas background. `npm run build` passes.
+- `14-node-editing.md`: Integrated `@xyflow/react` `NodeResizer` inside canvas nodes with custom subtle dark-themed handle/line styles and shape-specific minimum dimensions (60px for circles, 80x40px for others). Implemented double-click inline label editing using an absolutely overlayed `<textarea>` styled exactly like the static text to avoid layout shifts. Built seamless cooperative state sync using `useReactFlow().setNodes` and excluded text interactions from triggering canvas drag or panning utilizing the `nodrag nopan` React Flow helper classes. `npm run build` successfully compiles and passes all checks.
 
 ## In Progress
 
