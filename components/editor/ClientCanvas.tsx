@@ -57,9 +57,12 @@ import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
 import ShapePanel from "./ShapePanel";
 import { CanvasShapeNode } from "./nodes/CanvasShapeNodes";
 import { CanvasEdgeComponent } from "./edges/CanvasEdge";
+import { PresenceAvatars, CustomCursor } from "./presence";
 import StarterTemplatesModal from "./starter-templates-modal";
 import { type CanvasTemplate } from "./starter-templates";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useCanvasAutosave } from "@/hooks/use-canvas-autosave";
+import { useCanvasLoad } from "@/hooks/use-canvas-load";
 import { generateNodeId } from "@/lib/node-id";
 import {
   DEFAULT_NODE_COLOR,
@@ -161,7 +164,6 @@ function CanvasFlow({
   const { screenToFlowPosition } = reactFlow;
 
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
-
   useEffect(() => {
     const handleOpenTemplates = () => setIsTemplatesOpen(true);
     window.addEventListener("open-starter-templates", handleOpenTemplates);
@@ -172,14 +174,45 @@ function CanvasFlow({
   const handleImportTemplate = useCallback(
     (template: CanvasTemplate) => {
       setIsTemplatesOpen(false);
-      reactFlow.setNodes(template.nodes);
-      reactFlow.setEdges(template.edges);
       
+      const currentNodes = reactFlow.getNodes();
+      const currentEdges = reactFlow.getEdges();
+
+      // 1. Clear current canvas completely via React Flow's native delete
+      if (currentNodes.length > 0 || currentEdges.length > 0) {
+        reactFlow.deleteElements({ nodes: currentNodes, edges: currentEdges });
+      }
+      
+      // 2. Generate completely fresh IDs for the template to prevent Liveblocks CRDT conflicts
+      const idMap = new Map<string, string>();
+      const newNodes = template.nodes.map((node) => {
+        const newId = generateNodeId(node.type as CanvasNodeShape);
+        idMap.set(node.id, newId);
+        return { ...node, id: newId };
+      });
+      
+      const newEdges = template.edges.map((edge) => {
+        const newId = `e_${Math.random().toString(36).slice(2, 11)}`;
+        return {
+          ...edge,
+          id: newId,
+          source: idMap.get(edge.source) ?? edge.source,
+          target: idMap.get(edge.target) ?? edge.target,
+        };
+      });
+
+      // 3. Load the selected template
       setTimeout(() => {
-        void reactFlow.fitView({ padding: 0.2, duration: viewportAnimation.duration });
+        onNodesChange(newNodes.map((item) => ({ type: "add", item })));
+        onEdgesChange(newEdges.map((item) => ({ type: "add", item })));
+        
+        // 4. Reset viewport
+        setTimeout(() => {
+          void reactFlow.fitView({ padding: 0.2, duration: viewportAnimation.duration });
+        }, 50);
       }, 50);
     },
-    [reactFlow]
+    [onNodesChange, onEdgesChange, reactFlow]
   );
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -204,7 +237,10 @@ function CanvasFlow({
       const newNode: CanvasNode = {
         id,
         type: payload.shape,
-        position,
+        position: {
+          x: position.x - payload.size.width / 2,
+          y: position.y - payload.size.height / 2,
+        },
         width: payload.size.width,
         height: payload.size.height,
         data: {
@@ -251,7 +287,9 @@ function CanvasFlow({
   });
 
   return (
-    <div className="relative h-full w-full bg-bg-base">
+    <div
+      className="relative h-full w-full bg-bg-base"
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -267,9 +305,11 @@ function CanvasFlow({
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
-        <Cursors />
+        <Cursors components={{ Cursor: CustomCursor }} />
         <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} />
       </ReactFlow>
+
+      <PresenceAvatars />
 
       <div className="absolute bottom-28 left-6 z-50">
         <div className="flex items-center gap-1 rounded-full border border-border bg-bg-elevated/90 px-2 py-2 text-text-secondary backdrop-blur-sm">
@@ -336,7 +376,7 @@ function CanvasFlow({
   );
 }
 
-function CanvasInner() {
+function CanvasInner({ projectId }: { projectId: string }) {
   const {
     nodes,
     edges,
@@ -351,6 +391,25 @@ function CanvasInner() {
       nodes: { initial: [] },
       edges: { initial: [] },
     });
+
+  const [isAutosaveReady, setIsAutosaveReady] = useState(false);
+
+  useCanvasLoad({
+    projectId,
+    nodes,
+    edges,
+    isLoading,
+    onNodesChange,
+    onEdgesChange,
+    onReady: () => setIsAutosaveReady(true),
+  });
+
+  useCanvasAutosave({
+    projectId,
+    nodes,
+    edges,
+    isReady: isAutosaveReady,
+  });
 
   const flowProps = useMemo(
     () => ({
@@ -387,7 +446,7 @@ export default function ClientCanvas({ roomId }: ClientCanvasProps) {
               </div>
             }
           >
-            <CanvasInner />
+            <CanvasInner projectId={roomId} />
           </ClientSideSuspense>
         </SimpleErrorBoundary>
       </RoomProvider>

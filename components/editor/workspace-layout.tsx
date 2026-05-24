@@ -5,6 +5,7 @@ import ProjectSidebar from "./project-sidebar";
 import EditorNavbar from "./editor-navbar";
 import AiAssistantSidebar from "./ai-assistant-sidebar";
 import { ProjectDialogProvider } from "@/hooks/use-project-dialogs";
+import { CanvasSaveStatusProvider } from "@/hooks/use-canvas-save-status";
 import { cn } from "@/lib/utils";
 import type { ProjectData } from "@/lib/project-helpers";
 import ShareDialog from "./dialogs/ShareDialog";
@@ -38,6 +39,7 @@ export default function WorkspaceLayout({
 
   return (
     <ProjectDialogProvider>
+      <CanvasSaveStatusProvider>
       <div className="relative h-screen w-full overflow-hidden bg-background text-foreground flex flex-col">
         {/* Top Navbar (reuse existing component) */}
         <EditorNavbar
@@ -82,6 +84,7 @@ export default function WorkspaceLayout({
           />
         </div>
       </div>
+      </CanvasSaveStatusProvider>
     </ProjectDialogProvider>
   );
 }

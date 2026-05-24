@@ -72,18 +72,18 @@ export async function getProjectCollaborators(
   const enrichedCollaborators = await Promise.all(
     collaborators.map(async (c) => {
       try {
-        const users = await clerk.users.getUserList({
+        const usersResponse = await clerk.users.getUserList({
           emailAddress: [c.email],
-        });
+        }) as unknown as { data: User[]; totalCount: number };
 
-        const user = (users as any)?.[0];
+        const user = usersResponse.data?.[0] ?? null;
 
         return {
           id: c.id,
           email: c.email,
           createdAt: c.createdAt,
           displayName: user ? user.fullName || user.firstName || null : null,
-          avatar: user ? user.imageUrl ?? user.image_url : null,
+          avatar: user?.imageUrl ?? null,
           role: "collaborator" as const,
         };
       } catch (e) {

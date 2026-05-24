@@ -6,9 +6,59 @@ import {
   EdgeLabelRenderer,
   BaseEdge,
   useReactFlow,
+  useNodes,
   type EdgeProps,
 } from "@xyflow/react";
 import type { CanvasEdge } from "@/types/canvas";
+
+function getAdaptiveLabelOffset(
+  labelX: number,
+  labelY: number,
+  nodes: Array<{ position?: { x: number; y: number }; width?: number; height?: number }>,
+  labelWidth = 80,
+  labelHeight = 20,
+): { x: number; y: number } {
+  const PAD = 4;
+
+  function intersectsNode(x: number, y: number): boolean {
+    const lx = x - labelWidth / 2 - PAD;
+    const ly = y - labelHeight / 2 - PAD;
+    const lw = labelWidth + PAD * 2;
+    const lh = labelHeight + PAD * 2;
+    for (const node of nodes) {
+      if (node.position == null || node.width == null || node.height == null) continue;
+      if (
+        lx < node.position.x + node.width &&
+        lx + lw > node.position.x &&
+        ly < node.position.y + node.height &&
+        ly + lh > node.position.y
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Default: centered on the edge path
+  if (!intersectsNode(labelX, labelY)) {
+    return { x: 0, y: 0 };
+  }
+
+  // Collision: try downward first
+  const DOWNWARD = 18;
+  if (!intersectsNode(labelX, labelY + DOWNWARD)) {
+    return { x: 0, y: DOWNWARD };
+  }
+
+  // Fallback: upward
+  const UPWARD = -18;
+  if (!intersectsNode(labelX, labelY + UPWARD)) {
+    return { x: 0, y: UPWARD };
+  }
+
+  // Both blocked: use downward anyway
+  return { x: 0, y: DOWNWARD };
+}
 
 export function CanvasEdgeComponent({
   id,
@@ -39,6 +89,22 @@ export function CanvasEdgeComponent({
     targetPosition,
     borderRadius: 12,
   });
+
+  const nodes = useNodes();
+  const CHIP_PAD = 10;
+  const CHIP_HEIGHT = 20;
+  const CHAR_W = 6.5;
+  const labelWidth = isEditing
+    ? Math.max(72, (draft.length + 2) * 7)
+    : label
+      ? label.length * CHAR_W + CHIP_PAD * 2
+      : 92;
+  const { x: labelOffsetX, y: labelOffsetY } = getAdaptiveLabelOffset(
+    labelX, labelY,
+    nodes,
+    labelWidth,
+    CHIP_HEIGHT,
+  );
 
   const isActive = selected || isHovered;
   const strokeColor = isActive ? "var(--accent-primary)" : "rgba(255,255,255,0.28)";
@@ -117,7 +183,7 @@ export function CanvasEdgeComponent({
         <div
           style={{
             position: "absolute",
-            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            transform: `translate(-50%, -50%) translate(${labelX + labelOffsetX}px, ${labelY + labelOffsetY}px)`,
             pointerEvents: "all",
           }}
           className="nodrag nopan"
@@ -153,8 +219,9 @@ export function CanvasEdgeComponent({
               style={{
                 display: "inline-block",
                 background: "var(--bg-elevated)",
-                color: "var(--text-secondary)",
+                color: "var(--text-primary)",
                 border: `1px solid ${isActive ? "var(--accent-primary)" : "var(--border-default)"}`,
+                boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
                 borderRadius: "9999px",
                 padding: "2px 10px",
                 fontSize: "11px",
@@ -174,6 +241,7 @@ export function CanvasEdgeComponent({
                 background: "var(--bg-elevated)",
                 color: "var(--text-muted)",
                 border: `1px dashed ${isActive ? "var(--accent-primary)" : "var(--border-subtle)"}`,
+                boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
                 borderRadius: "9999px",
                 padding: "2px 10px",
                 fontSize: "11px",

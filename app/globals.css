@@ -297,3 +297,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Edge labels use adaptive positioning via getAdaptiveLabelOffset */

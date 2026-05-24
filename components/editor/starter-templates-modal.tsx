@@ -63,7 +63,7 @@ function TemplatePreview({ template }: { template: CanvasTemplate }) {
   }, [template]);
 
   return (
-    <div className="w-full h-40 bg-bg-base/50 rounded-md border border-border overflow-hidden mb-4 relative">
+    <div className="w-full h-1/2 bg-bg-base/50 rounded-md border border-border overflow-hidden mb-4 relative">
       <svg
         viewBox={viewBox}
         className="w-full h-full text-text-secondary"
@@ -189,13 +189,14 @@ export default function StarterTemplatesModal({
 }: StarterTemplatesModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-bg-elevated border-border">
+      <DialogContent className="sm:max-w-6xl w-[90vw]  flex flex-col p-0 overflow-hidden bg-bg-elevated border-border">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-medium tracking-tight text-text-primary">
             Starter Templates
           </DialogTitle>
           <DialogDescription className="text-text-secondary">
-            Choose a diagram template to get started quickly. Importing a template will replace your current canvas.
+            Choose a diagram template to get started quickly. Importing a
+            template will replace your current canvas.
           </DialogDescription>
         </DialogHeader>
 
@@ -207,14 +208,14 @@ export default function StarterTemplatesModal({
                 className="flex flex-col bg-card rounded-xl border border-border p-4 hover:border-accent-primary/50 transition-colors duration-200"
               >
                 <TemplatePreview template={template} />
-                
+
                 <h3 className="font-semibold text-text-primary text-base mb-1">
                   {template.name}
                 </h3>
                 <p className="text-sm text-text-secondary line-clamp-2 mb-4 flex-1">
                   {template.description}
                 </p>
-                
+
                 <Button
                   onClick={() => onImport(template)}
                   variant="outline"

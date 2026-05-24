@@ -8,6 +8,7 @@ import CreateProjectDialog from "@/components/editor/dialogs/CreateProjectDialog
 import RenameProjectDialog from "@/components/editor/dialogs/RenameProjectDialog";
 import DeleteProjectDialog from "@/components/editor/dialogs/DeleteProjectDialog";
 import { ProjectDialogProvider } from "@/hooks/use-project-dialogs";
+import { CanvasSaveStatusProvider } from "@/hooks/use-canvas-save-status";
 import type { ProjectData } from "@/lib/project-helpers";
 
 interface EditorContentProps {
@@ -23,6 +24,7 @@ export default function EditorContent({
 
   return (
     <ProjectDialogProvider>
+      <CanvasSaveStatusProvider>
       <div className="relative flex flex-col h-screen w-screen bg-bg-base overflow-hidden">
         {/* Editor top navigation bar */}
         <EditorNavbar
@@ -47,6 +49,7 @@ export default function EditorContent({
           <DeleteProjectDialog />
         </div>
       </div>
+      </CanvasSaveStatusProvider>
     </ProjectDialogProvider>
   );
 }

@@ -201,10 +201,10 @@ export default function ShareDialog({
                           <img
                             src={c.avatar}
                             alt={c.displayName || c.email}
-                            className="size-13 shrink-0 rounded-full border border-border-subtle object-cover"
+                            className="size-10 shrink-0 rounded-full border border-border-subtle object-cover"
                           />
                         ) : (
-                          <div className="flex size-13 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-accent-dim text-text-brand">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-accent-dim text-text-brand">
                             <span className="sr-only">
                               {c.displayName || c.email}
                             </span>

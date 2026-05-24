@@ -14,7 +14,7 @@ import {
 } from "@/types/canvas";
 
 const HANDLE_CLASS =
-  "h-2.5 w-2.5 border border-bg-base bg-text-primary opacity-0 transition-opacity group-hover:opacity-100";
+  "h-5 w-5 relative border-2 border-bg-base bg-text-primary opacity-0 transition-all duration-150 group-hover:opacity-100 hover:!opacity-100 hover:scale-125 hover:border-accent-primary hover:bg-accent-primary cursor-crosshair before:content-[''] before:absolute before:-inset-[8px] before:rounded-full";
 
 const COLOR_LABELS = [
   "Neutral Dark",
@@ -413,7 +413,7 @@ export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
         minWidth={shape === "circle" ? 60 : 80}
         minHeight={shape === "circle" ? 60 : 40}
         onResizeEnd={handleResizeEnd}
-        handleClassName="h-2 w-2 bg-bg-surface border border-border-subtle rounded-sm hover:border-accent-primary hover:bg-accent-primary transition-colors"
+        handleClassName="h-6 w-6 bg-bg-surface border-2 border-border-subtle rounded-sm hover:border-accent-primary hover:bg-accent-primary hover:scale-125 transition-all duration-150"
         lineClassName="border-accent-primary/40 border-dashed"
       />
       <ShapeBody

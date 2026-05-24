@@ -34,6 +34,17 @@ Update this file whenever the current phase, active feature, or implementation s
 - `Edge directionality fix`: Resolved reversed arrowhead behavior by adjusting overlapping handle render order in `components/editor/nodes/CanvasShapeNodes.tsx` so source handles are the top interactive layer and drag direction maps consistently to edge direction. Verified with `npm run build` (pass).
 - `17-canvas-ergonomics.md`: Added a bottom-left floating canvas control bar above the shape panel with zoom out, fit view, zoom in, undo, and redo icon controls. Zoom actions use the React Flow instance with short viewport animations. Undo/redo are wired to Liveblocks history via `useUndo`, `useRedo`, `useCanUndo`, and `useCanRedo`, with disabled history buttons visually dimmed. Created `hooks/useKeyboardShortcuts.ts` for zoom and history shortcuts while skipping inputs, textareas, and editable fields. Removed the bottom-right minimap. `npm run build` passes.
 - `18-starter-template.md`: Added a Starter Templates library with 3 pre-built diagrams (Microservices, CI/CD, Event-Driven). Created `components/editor/starter-templates-modal.tsx` with SVG previews that map canvas node colors and shapes cleanly. Wired up a `LayoutTemplate` icon button in the `EditorNavbar` using a CustomEvent to decouple the trigger from the Liveblocks context, allowing the modal to render inside `ClientCanvas.tsx` and seamlessly replace the canvas nodes and edges via `useReactFlow`. `npm run build` passes without type errors.
+- `19-presence-avatars-cursor.md`: Implemented active room participants in the canvas view. Added `PresenceAvatars` to `ClientCanvas.tsx` positioned top-right, showing up to 5 collaborator avatars (excluding the current user) with initials fallback and +N overflow chip, separated by a divider from the `UserButton`. Replaced the default `@liveblocks/react-flow` cursors with `CustomCursor` rendering a small colored SVG pointer and colored name badge matched to the user's presence color. Cursors use the Liveblocks presence broadcast state automatically handled by `@liveblocks/react-flow`. `npm run build` passes.
+- `20-ai-sidebar-shell.md`: Implemented the AI Assistant floating sidebar shell (`components/editor/ai-assistant-sidebar.tsx`). Separated it into a dedicated component with a dual-tab layout (AI Architect and Specs) using `shadcn Tabs`. Built out the AI Architect chat interface with an empty state, dynamic starter prompt chips, stylized chat message bubbles, and an auto-resizing text input utilizing `shadcn Textarea`. Created the Specs tab with a disabled Generate Spec action and a static demo specification card. Maintained existing sidebar toggle and dark-themed styling tokens. `npm run build` passes.
+- `edge-label-visibility-fix`: Fixed edge label discoverability when templates load. Added `getPerpendicularOffset` helper in `CanvasEdge.tsx` that offsets labels perpendicular to the edge's dominant direction (22px below horizontal edges, 22px right of vertical edges) instead of sitting directly on the edge line. Increased label text contrast to `var(--text-primary)` and added a subtle `boxShadow` for depth. Verified template node spacing is adequate — all connected nodes have 200px+ gaps, so the 22px offset won't cause overlap. No z-index or global layering changes were made.
+- `edge-label-drag-visibility`: Replaced z-index CSS hack with adaptive label positioning. Added `getAdaptiveLabelOffset` in `CanvasEdge.tsx` that detects node-label overlap using `useNodes()` from `@xyflow/react` and dynamically shifts edge labels perpendicular to the edge direction away from overlapping nodes. Removed old `onNodeDragStart`/`onNodeDragStop` handlers, `isDraggingNode` state, and `z-index: 1000` CSS rule from `globals.css`. Labels now reposition subtly and smoothly during drag without z-index or layering changes.
+- `edge-label-position-refinement`: Refined label positioning so labels sit **on the edge path by default** (no permanent offset). Replaced perpendicular offset logic with AABB rectangle collision detection between label bounds and node bounds. On collision: vertical Y offset only — try +18px (downward), fallback to −18px (upward). Removed `getPerpendicularOffset` entirely. Matches Figma/Miro/Excalidraw behavior.
+
+- `21-canvas-autosave.md`: Added canvas autosave and load. Installed `@vercel/blob` (via pnpm). Reused Prisma `canvasJsonPath` for blob URL metadata. Created `PUT`/`GET /api/projects/[projectId]/canvas` (Blob upload + Prisma reference; owner/collaborator access). Added `hooks/use-canvas-autosave.ts` (1.5s debounce), `hooks/use-canvas-load.ts` (skips when room already has nodes/edges), and `hooks/use-canvas-save-status.tsx` for navbar status. Editor navbar shows Saving/Saved/Error on the Save button. `pnpm run build` passes.
+- `share-dialog-avatar-fix`: Fixed contributor avatars missing in Share dialog. Root cause: `clerk.users.getUserList()` returns `{ data: User[], totalCount: number }` but code accessed it as `User[]` — `(users as any)?.[0]` was always `undefined`, making `avatar` and `displayName` `null`. Changed to `data[0]` access with proper typing. Also fixed `size-13` → `size-10` (invalid Tailwind v4 class). TypeScript clean.
+- `drag-drop-offset-fix`: Fixed dropped nodes appearing below cursor by compensating for node dimensions in `onDrop` — position is now offset by `-width/2, -height/2` so nodes center on the cursor.
+- `connector-hitarea-fix`: Increased connection handle size from 10px to 14px, added border-2, hover scale, accent color change, and crosshair cursor for easier grabbing.
+- `resize-handle-hitarea-fix`: Increased resize handle size from 8px to 12px with hover scale and smooth transitions for easier resizing.
 
 ## In Progress
 
@@ -42,22 +53,3 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Phase 3: Collaborative Canvas Integration (Scaffolding and socket integrations)
-
-## Session Notes
-
-- Started Share Dialog implementation planning (see [context/feature-specs/09-share-dialog.md](context/feature-specs/09-share-dialog.md)).
-- TODOs created and first task (Add Share button to editor navbar) marked in-progress.
-- Implemented `Share` button and added initial `ShareDialog` UI component. (See [components/editor/workspace-layout.tsx](components/editor/workspace-layout.tsx#L1) and [components/editor/dialogs/ShareDialog.tsx](components/editor/dialogs/ShareDialog.tsx#L1)).
-- Updated todo list: Share button completed, ShareDialog UI in-progress.
-
-## Open Questions
-
-- Add unresolved product or implementation questions here.
-
-## Architecture Decisions
-
-- Add decisions that affect the system design or data model.
-
-## Session Notes
-
-- Add context needed to resume work in the next session.
