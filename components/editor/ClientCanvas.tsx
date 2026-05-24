@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useEffect, useState } from "react";
 import { Maximize2, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 // lightweight local error boundary to avoid adding an external dependency
 interface SimpleErrorBoundaryProps {
   fallback: React.ReactNode;
@@ -311,58 +312,63 @@ function CanvasFlow({
 
       <PresenceAvatars />
 
-      <div className="absolute bottom-28 left-6 z-50">
+      <div className="absolute bottom-28 left-6 z-10">
         <div className="flex items-center gap-1 rounded-full border border-border bg-bg-elevated/90 px-2 py-2 text-text-secondary backdrop-blur-sm">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleZoomOut}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="rounded-xl"
             title="Zoom out"
             aria-label="Zoom out"
           >
             <ZoomOut className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleFitView}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="rounded-xl"
             title="Fit view"
             aria-label="Fit view"
           >
             <Maximize2 className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleZoomIn}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="rounded-xl"
             title="Zoom in"
             aria-label="Zoom in"
           >
             <ZoomIn className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </Button>
 
           <div className="mx-1 h-6 w-px bg-border" aria-hidden="true" />
 
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleUndo}
             disabled={!canUndo}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-35"
+            className="rounded-xl"
             title="Undo"
             aria-label="Undo"
           >
             <Undo2 className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleRedo}
             disabled={!canRedo}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-bg-subtle hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-35"
+            className="rounded-xl"
             title="Redo"
             aria-label="Redo"
           >
             <Redo2 className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </div>
 

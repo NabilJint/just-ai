@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +89,7 @@ export default function CreateProjectDialog() {
           <Button
             onClick={confirmCreate}
             disabled={!projectName || !projectSlug || isLoading}
-            className="bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold rounded-xl px-6 shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:pointer-events-none font-feather uppercase tracking-wider text-caption"
+            variant="primary3d"
           >
             {isLoading ? "Creating..." : "Create Project"}
           </Button>

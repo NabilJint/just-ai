@@ -41,10 +41,21 @@ Update this file whenever the current phase, active feature, or implementation s
 - `edge-label-position-refinement`: Refined label positioning so labels sit **on the edge path by default** (no permanent offset). Replaced perpendicular offset logic with AABB rectangle collision detection between label bounds and node bounds. On collision: vertical Y offset only — try +18px (downward), fallback to −18px (upward). Removed `getPerpendicularOffset` entirely. Matches Figma/Miro/Excalidraw behavior.
 
 - `21-canvas-autosave.md`: Added canvas autosave and load. Installed `@vercel/blob` (via pnpm). Reused Prisma `canvasJsonPath` for blob URL metadata. Created `PUT`/`GET /api/projects/[projectId]/canvas` (Blob upload + Prisma reference; owner/collaborator access). Added `hooks/use-canvas-autosave.ts` (1.5s debounce), `hooks/use-canvas-load.ts` (skips when room already has nodes/edges), and `hooks/use-canvas-save-status.tsx` for navbar status. Editor navbar shows Saving/Saved/Error on the Save button. `pnpm run build` passes.
+- `22-design-agent-api.md`: Wired design generation backend via Trigger.dev. Added Prisma `TaskRun` model (`runId`, `projectId`, `userId`, `createdAt`) with migration `20260524000000_add_task_run`. Created `trigger/design-agent.ts` (minimal echo task, no AI yet). Added `POST /api/ai/design` (auth, project access, triggers task, stores `TaskRun`, returns `runId`) and `POST /api/ai/design/token` (ownership check, run-scoped public token). Shared parsing helpers in `lib/design-agent.ts`. `npm run build` passes.
 - `share-dialog-avatar-fix`: Fixed contributor avatars missing in Share dialog. Root cause: `clerk.users.getUserList()` returns `{ data: User[], totalCount: number }` but code accessed it as `User[]` — `(users as any)?.[0]` was always `undefined`, making `avatar` and `displayName` `null`. Changed to `data[0]` access with proper typing. Also fixed `size-13` → `size-10` (invalid Tailwind v4 class). TypeScript clean.
 - `drag-drop-offset-fix`: Fixed dropped nodes appearing below cursor by compensating for node dimensions in `onDrop` — position is now offset by `-width/2, -height/2` so nodes center on the cursor.
 - `connector-hitarea-fix`: Increased connection handle size from 10px to 14px, added border-2, hover scale, accent color change, and crosshair cursor for easier grabbing.
 - `resize-handle-hitarea-fix`: Increased resize handle size from 8px to 12px with hover scale and smooth transitions for easier resizing.
+
+- `ui-consistency-audit.md`: Performed comprehensive UI consistency audit across the project. Fixed:
+  - **ClientCanvas.tsx**: Replaced 5 raw `<button>` elements with shared `<Button variant="ghost" size="icon">` component for zoom/undo toolbar
+  - **ShapePanel.tsx**: Replaced 6 raw `<button>` elements with shared `<Button>` component for shape buttons
+  - **ai-assistant-sidebar.tsx**: Replaced raw `<button>` suggestion prompts with shared `<Button>`; replaced raw `<div>` card with shared `<Card>` component
+  - **starter-templates-modal.tsx**: Replaced raw `<div>` template cards with shared `<Card>` component
+  - **CreateProjectDialog.tsx**: Replaced manual `primary3d` style re-implementation with `variant="primary3d"`; removed unused `React` import
+  - **RenameProjectDialog.tsx**: Replaced manual `primary3d` style re-implementation with `variant="primary3d"`
+  - **DeleteProjectDialog.tsx**: Removed redundant CSS classes overlapping with `variant="destructive3d"`; removed unused `React` import
+  - **ShareDialog.tsx**: Replaced flat green inline styling with `variant="primary3d"`; removed unused `React` import
 
 ## In Progress
 
@@ -52,4 +63,4 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Phase 3: Collaborative Canvas Integration (Scaffolding and socket integrations)
+- `23-design-agent-logic.md`: Implement full AI design agent (Gemini, Liveblocks canvas updates, AI presence/status).

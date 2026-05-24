@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -270,7 +270,7 @@ export default function ShareDialog({
           </Button>
           <Button
             onClick={() => onOpenChange(false)}
-            className="bg-duo-green text-bg-base font-bold rounded-xl px-6"
+            variant="primary3d"
           >
             Done
           </Button>

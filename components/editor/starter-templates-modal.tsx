@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { CANVAS_TEMPLATES, type CanvasTemplate } from "./starter-templates";
 import { type CanvasNode, type CanvasNodeColor } from "@/types/canvas";
 
@@ -203,9 +204,9 @@ export default function StarterTemplatesModal({
         <ScrollArea className="flex-1 p-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
             {CANVAS_TEMPLATES.map((template) => (
-              <div
+              <Card
                 key={template.id}
-                className="flex flex-col bg-card rounded-xl border border-border p-4 hover:border-accent-primary/50 transition-colors duration-200"
+                className="flex flex-col border-border p-4 hover:border-accent-primary/50 transition-colors duration-200 rounded-xl"
               >
                 <TemplatePreview template={template} />
 
@@ -223,7 +224,7 @@ export default function StarterTemplatesModal({
                 >
                   Import Template
                 </Button>
-              </div>
+              </Card>
             ))}
           </div>
         </ScrollArea>

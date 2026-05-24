@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +61,6 @@ export default function DeleteProjectDialog() {
             onClick={() => confirmDelete()}
             disabled={isLoading}
             variant="destructive3d"
-            className="px-6 font-feather uppercase tracking-wider text-caption"
           >
             {isLoading ? "Deleting..." : "Delete Permanently"}
           </Button>

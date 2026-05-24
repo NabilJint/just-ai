@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { ShapePreview } from "./nodes/CanvasShapeNodes";
 import type { CanvasNodeShape, CanvasNodeSize } from "@/types/canvas";
 
@@ -61,20 +62,21 @@ export default function ShapePanel() {
   }
 
   return (
-    <div className="absolute bottom-6 left-1/2 z-50 -translate-x-1/2">
+    <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
       <div className="flex items-center gap-2 rounded-full border border-border bg-bg-elevated/90 px-3 py-2 backdrop-blur-sm">
         {SHAPES.map((s) => (
-          <button
+          <Button
             key={s.key}
-            type="button"
+            variant="ghost"
+            size="icon"
             draggable
             onDragStart={(e) => onDragStart(e, s.key, s.size)}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-bg-base/60 text-text-primary transition-colors hover:border-border-subtle hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="size-11 rounded-xl border border-border bg-bg-base/60 hover:border-border-subtle hover:bg-bg-subtle"
             title={s.label}
             aria-label={`Add ${s.label}`}
           >
             <ShapePreview shape={s.key} size={s.previewSize} />
-          </button>
+          </Button>
         ))}
       </div>
     </div>
