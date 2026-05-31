@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { CANVAS_TEMPLATES, type CanvasTemplate } from "./starter-templates";
 import { type CanvasNode, type CanvasNodeColor } from "@/types/canvas";
 

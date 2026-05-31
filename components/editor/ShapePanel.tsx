@@ -15,37 +15,38 @@ const SHAPES: {
     key: "rectangle",
     label: "Rectangle",
     size: { width: 160, height: 90 },
-    previewSize: { width: 32, height: 20 },
+    previewSize: { width: 32, height: 22 },
   },
   {
     key: "diamond",
     label: "Diamond",
     size: { width: 148, height: 148 },
-    previewSize: { width: 34, height: 34 },
+    // Diamond uses 13% inset, so 38×38 container = ~28×28 visual
+    previewSize: { width: 38, height: 38 },
   },
   {
     key: "circle",
     label: "Circle",
     size: { width: 112, height: 112 },
-    previewSize: { width: 30, height: 30 },
+    previewSize: { width: 28, height: 28 },
   },
   {
     key: "pill",
     label: "Pill",
     size: { width: 180, height: 80 },
-    previewSize: { width: 36, height: 18 },
+    previewSize: { width: 36, height: 20 },
   },
   {
     key: "cylinder",
     label: "Cylinder",
     size: { width: 144, height: 104 },
-    previewSize: { width: 34, height: 26 },
+    previewSize: { width: 28, height: 24 },
   },
   {
     key: "hexagon",
     label: "Hexagon",
     size: { width: 148, height: 120 },
-    previewSize: { width: 34, height: 28 },
+    previewSize: { width: 30, height: 26 },
   },
 ];
 

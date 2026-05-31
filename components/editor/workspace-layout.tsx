@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 import type { ProjectData } from "@/lib/project-helpers";
 import ShareDialog from "./dialogs/ShareDialog";
 import CreateProjectDialog from "./dialogs/CreateProjectDialog";
-import RenameProjectDialog from "./dialogs/RenameProjectDialog";
 import DeleteProjectDialog from "./dialogs/DeleteProjectDialog";
 import { CanvasStateProvider } from "@/hooks/use-canvas-state-context";
+import RenameProjectDialog from "./dialogs/RenameProjectDialog";
 
 interface WorkspaceProject {
   id: string;
