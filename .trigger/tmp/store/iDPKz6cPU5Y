@@ -1,0 +1,139 @@
+import {
+  createGoogleGenerativeAI,
+  external_exports,
+  generateText
+} from "../../../chunk-RHPNGSK4.mjs";
+import "../../../chunk-HWJ2GB62.mjs";
+import {
+  logger,
+  metadata,
+  task
+} from "../../../chunk-IL4ENQNW.mjs";
+import "../../../chunk-YE7P35PB.mjs";
+import {
+  __name,
+  init_esm
+} from "../../../chunk-JN2GKVDO.mjs";
+
+// trigger/generate-spec.ts
+init_esm();
+var generateSpecPayloadSchema = external_exports.object({
+  projectId: external_exports.string().min(1),
+  roomId: external_exports.string().min(1),
+  chatHistory: external_exports.array(
+    external_exports.object({
+      role: external_exports.enum(["user", "assistant"]),
+      content: external_exports.string()
+    })
+  ),
+  nodes: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())),
+  edges: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown()))
+});
+function summarizeCanvas(nodes, edges) {
+  if (nodes.length === 0 && edges.length === 0) {
+    return "The canvas is empty.";
+  }
+  const nodeLines = nodes.map((node, i) => {
+    const data = node.data;
+    const pos = node.position;
+    return `  ${i + 1}. "${data?.label ?? ""}" (shape: ${data?.shape ?? "rectangle"}) at x=${pos?.x ?? 0}, y=${pos?.y ?? 0}`;
+  });
+  const edgeLines = edges.map((edge, i) => {
+    return `  ${i + 1}. ${String(edge.source ?? "")} → ${String(edge.target ?? "")}${edge.label ? ` "${edge.label}"` : ""}`;
+  });
+  return [
+    "--- Canvas Nodes ---",
+    ...nodeLines,
+    "--- Canvas Edges ---",
+    ...edgeLines
+  ].join("\n");
+}
+__name(summarizeCanvas, "summarizeCanvas");
+function summarizeChat(chatHistory) {
+  if (chatHistory.length === 0) return "No prior conversation.";
+  return chatHistory.map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`).join("\n");
+}
+__name(summarizeChat, "summarizeChat");
+var generateSpecTask = task({
+  id: "generate-spec",
+  retry: {
+    maxAttempts: 2,
+    factor: 2,
+    minTimeoutInMs: 1e3,
+    maxTimeoutInMs: 1e4
+  },
+  run: /* @__PURE__ */ __name(async (payload, { ctx }) => {
+    logger.info("Spec generation started", {
+      roomId: payload.roomId,
+      projectId: payload.projectId,
+      nodeCount: payload.nodes.length,
+      edgeCount: payload.edges.length,
+      chatLength: payload.chatHistory.length
+    });
+    metadata.set("status", "starting").set("progress", 0);
+    const reportStatus = /* @__PURE__ */ __name(async (phase, message) => {
+      metadata.set("status", phase).append("logs", message);
+    }, "reportStatus");
+    try {
+      await reportStatus("processing", "Analyzing canvas and chat context…");
+      metadata.set("progress", 25);
+      const apiKey = process.env.GOOGLE_AI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GOOGLE_AI_API_KEY is not configured");
+      }
+      const canvasSummary = summarizeCanvas(payload.nodes, payload.edges);
+      const chatSummary = summarizeChat(payload.chatHistory);
+      const system = [
+        "You are a technical specification writer. Generate a clear, structured Markdown document.",
+        "Focus on architecture, components, data flow, and edge cases.",
+        "Use markdown headings, code blocks, lists, and tables as appropriate.",
+        "Be thorough but concise — prioritize clarity over length."
+      ].join("\n");
+      await reportStatus("processing", "Generating spec with Gemini…");
+      metadata.set("progress", 50);
+      const google = createGoogleGenerativeAI({ apiKey });
+      const result = await generateText({
+        model: google("gemini-3.5-flash"),
+        system,
+        prompt: [
+          "# Technical Specification Generation",
+          "",
+          "Generate a detailed technical specification based on the following context.",
+          "",
+          "## Chat History",
+          chatSummary,
+          "",
+          "## Canvas State",
+          canvasSummary,
+          "",
+          "---",
+          "",
+          "Write the specification in Markdown. Include:",
+          "- Overview / Purpose",
+          "- Architecture & Components",
+          "- Data Flow",
+          "- API / Interface Definitions",
+          "- Key Design Decisions",
+          "- Open Questions / Next Steps"
+        ].join("\n")
+      });
+      const spec = result.text;
+      metadata.set("progress", 100);
+      await reportStatus("complete", "Spec generation complete.");
+      return { spec, roomId: payload.roomId };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Spec generation failed";
+      logger.error("Spec generation failed", {
+        error: message,
+        roomId: payload.roomId
+      });
+      metadata.set("progress", 0).set("status", "error");
+      throw error;
+    }
+  }, "run")
+});
+export {
+  generateSpecPayloadSchema,
+  generateSpecTask
+};
+//# sourceMappingURL=generate-spec.mjs.map
