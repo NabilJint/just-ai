@@ -3,7 +3,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { useOthers, useOther } from "@liveblocks/react/suspense";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { type CursorsCursorProps } from "@liveblocks/react-flow";
 import { AI_AGENT_USER_ID } from "@/lib/design-agent-constants";
 
@@ -71,17 +71,6 @@ export function PresenceAvatars() {
       )}
 
       {collaborators.length > 0 && <div className="h-6 w-px bg-border mx-1" />}
-
-      <UserButton
-        appearance={{
-          elements: {
-            avatarBox:
-              "size-8 rounded-xl border border-border ring-2 ring-bg-elevated",
-            userButtonTrigger:
-              "rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-duo-green",
-          },
-        }}
-      />
     </div>
   );
 }

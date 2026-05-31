@@ -209,7 +209,8 @@ export function ShapeBody({
       <div className="relative" style={style}>
         <svg
           className="absolute inset-0 h-full w-full overflow-visible"
-          viewBox={`0 0 ${size.width} ${size.height}`}
+          viewBox={`0 0 16 15`}
+          // viewBox={`0 0 ${size.width} ${size.height}`}
           role="img"
           aria-hidden="true"
         >

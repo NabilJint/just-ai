@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { X, Plus, FolderGit2, Users, Pencil, Trash2 } from "lucide-react";
+import { X, Plus, FolderGit2, Users, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ProjectData } from "@/lib/project-helpers";
 import { useProjectDialogs } from "@/hooks/use-project-dialogs";
 
@@ -25,7 +26,11 @@ export default function ProjectSidebar({
   sharedProjects,
   currentProjectId,
 }: ProjectSidebarProps) {
+  const router = useRouter();
   const { openDialog } = useProjectDialogs();
+  const [navigatingProjectId, setNavigatingProjectId] = React.useState<
+    string | null
+  >(null);
 
   const isCurrentProjectShared = React.useMemo(() => {
     return sharedProjects.some((p) => p.id === currentProjectId);
@@ -39,6 +44,21 @@ export default function ProjectSidebar({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveTab(isCurrentProjectShared ? "shared" : "my-projects");
   }, [currentProjectId, isCurrentProjectShared]);
+
+  // Clear loading state when component remounts after navigation
+  React.useEffect(() => {
+    setNavigatingProjectId(null);
+  }, [currentProjectId]);
+
+  const handleNavigate = React.useCallback(
+    (projectId: string) => {
+      setNavigatingProjectId(projectId);
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
   return (
     <>
@@ -109,23 +129,36 @@ export default function ProjectSidebar({
                     <Link
                       key={project.id}
                       href={`/editor/${project.id}`}
-                      onClick={onClose}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigate(project.id);
+                        // Navigate to show loading state
+                        router.push(`/editor/${project.id}`);
+                      }}
                       className={cn(
                         "group relative block p-3 rounded-xl border transition-colors flex items-center justify-between",
                         currentProjectId === project.id
                           ? "bg-duo-green/10 border-duo-green/50 text-text-primary"
                           : "bg-bg-elevated border-border hover:border-duo-green/50 text-text-secondary group-hover:text-text-primary",
+                        navigatingProjectId === project.id &&
+                          project.id !== currentProjectId &&
+                          "opacity-60",
                       )}
                     >
                       <div className="flex items-center gap-3">
-                        <FolderGit2
-                          className={cn(
-                            "size-4 transition-colors",
-                            currentProjectId === project.id
-                              ? "text-duo-green"
-                              : "text-text-muted group-hover:text-duo-green",
-                          )}
-                        />
+                        {navigatingProjectId === project.id &&
+                        project.id !== currentProjectId ? (
+                          <Loader2 className="size-4 animate-spin text-duo-green" />
+                        ) : (
+                          <FolderGit2
+                            className={cn(
+                              "size-4 transition-colors",
+                              currentProjectId === project.id
+                                ? "text-duo-green"
+                                : "text-text-muted group-hover:text-duo-green",
+                            )}
+                          />
+                        )}
                         <span
                           className={cn(
                             "text-caption font-medium font-din-round uppercase tracking-wide",
@@ -197,27 +230,36 @@ export default function ProjectSidebar({
                     <Link
                       key={project.id}
                       href={`/editor/${project.id}`}
-                      onClick={() => {
-                        if (typeof window !== "undefined" && window.innerWidth < 768) {
-                          onClose();
-                        }
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigate(project.id);
+                        // Navigate to show loading state
+                        router.push(`/editor/${project.id}`);
                       }}
                       className={cn(
                         "group relative block p-3 rounded-xl border transition-colors flex items-center justify-between",
                         currentProjectId === project.id
                           ? "bg-sky-blue/10 border-sky-blue/50 text-text-primary"
                           : "bg-bg-elevated border-border hover:border-sky-blue/50 text-text-secondary group-hover:text-text-primary",
+                        navigatingProjectId === project.id &&
+                          project.id !== currentProjectId &&
+                          "opacity-60",
                       )}
                     >
                       <div className="flex items-center gap-3">
-                        <Users
-                          className={cn(
-                            "size-4 transition-colors",
-                            currentProjectId === project.id
-                              ? "text-sky-blue"
-                              : "text-text-muted group-hover:text-sky-blue",
-                          )}
-                        />
+                        {navigatingProjectId === project.id &&
+                        project.id !== currentProjectId ? (
+                          <Loader2 className="size-4 animate-spin text-sky-blue" />
+                        ) : (
+                          <Users
+                            className={cn(
+                              "size-4 transition-colors",
+                              currentProjectId === project.id
+                                ? "text-sky-blue"
+                                : "text-text-muted group-hover:text-sky-blue",
+                            )}
+                          />
+                        )}
                         <span
                           className={cn(
                             "text-caption font-medium font-din-round uppercase tracking-wide",

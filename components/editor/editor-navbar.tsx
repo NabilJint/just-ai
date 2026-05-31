@@ -60,7 +60,7 @@ interface EditorNavbarProps {
 export default function EditorNavbar({
   isSidebarOpen,
   onToggleSidebar,
-  projectName = "Untitled System Design",
+  projectName,
   onToggleAiChat,
   onShare,
   onOpenTemplates,
@@ -96,25 +96,43 @@ export default function EditorNavbar({
         </span>
       </div>
 
-      {/* Center Section */}
+      {/* Center Section — only show project title when a project is open */}
       <div className="flex items-center">
-        <span className="text-caption text-text-muted font-din-round tracking-wider uppercase font-semibold">
-          {projectName}
-        </span>
+        {projectName && (
+          <span className="text-caption text-text-muted font-din-round tracking-wider uppercase font-semibold">
+            {projectName}
+          </span>
+        )}
       </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          disabled
-          className="text-text-secondary rounded-xl cursor-default h-9 px-3 disabled:opacity-100"
-          title={saveStatusLabel(saveStatus)}
-          aria-live="polite"
-        >
-          <SaveStatusIcon status={saveStatus} />
-          <span className="text-sm font-medium">{saveStatusLabel(saveStatus)}</span>
-        </Button>
+        {/* UserButton — only on dashboard (no active project) */}
+        {!projectName && (
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox:
+                  "size-8 rounded-xl border border-border",
+                userButtonTrigger:
+                  "rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-duo-green",
+              },
+            }}
+          />
+        )}
+        {/* Save status — only shown when a project is open */}
+        {projectName && (
+          <Button
+            variant="ghost"
+            disabled
+            className="text-text-secondary rounded-xl cursor-default h-9 px-3 disabled:opacity-100"
+            title={saveStatusLabel(saveStatus)}
+            aria-live="polite"
+          >
+            <SaveStatusIcon status={saveStatus} />
+            <span className="text-sm font-medium">{saveStatusLabel(saveStatus)}</span>
+          </Button>
+        )}
         {onOpenTemplates && (
           <Button
             variant="ghost"
