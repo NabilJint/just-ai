@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 export interface Collaborator {
   id: string;
   email: string;
+  userId?: string | null;
   createdAt?: Date;
   displayName: string | null;
   avatar: string | null;
@@ -81,6 +82,7 @@ export async function getProjectCollaborators(
         return {
           id: c.id,
           email: c.email,
+          userId: c.userId,
           createdAt: c.createdAt,
           displayName: user ? user.fullName || user.firstName || null : null,
           avatar: user?.imageUrl ?? null,
@@ -90,6 +92,7 @@ export async function getProjectCollaborators(
         return {
           id: c.id,
           email: c.email,
+          userId: c.userId,
           createdAt: c.createdAt,
           displayName: null,
           avatar: null,
@@ -128,27 +131,42 @@ export async function addProjectCollaborator(projectId: string, email: string) {
     );
   }
 
+  // Look up the user by email to store their Clerk userId
+  let clerkUserId: string | null = null;
+  try {
+    const usersResponse = await clerk.users.getUserList({
+      emailAddress: [normalizedEmail],
+    }) as unknown as { data: User[]; totalCount: number };
+    const user = usersResponse.data?.[0] ?? null;
+    clerkUserId = user?.id ?? null;
+  } catch {
+    // Non-fatal: continue without userId (email fallback still works)
+  }
+
   const collab = await prisma.projectCollaborator.create({
-    data: { projectId, email: normalizedEmail },
+    data: { projectId, email: normalizedEmail, userId: clerkUserId },
   });
 
+  // Re-fetch user info for response enrichment
   try {
-    const users = await clerk.users.getUserList({
+    const usersResponse = await clerk.users.getUserList({
       emailAddress: [normalizedEmail],
-    });
-    const user = (users as any)?.[0];
+    }) as unknown as { data: User[]; totalCount: number };
+    const user = usersResponse.data?.[0] ?? null;
     return {
       id: collab.id,
       email: collab.email,
+      userId: collab.userId,
       createdAt: collab.createdAt,
       displayName: user ? user.fullName || user.firstName || null : null,
-      avatar: user ? user.imageUrl ?? user.image_url : null,
+      avatar: user?.imageUrl ?? null,
       role: "collaborator" as const,
     };
   } catch {
     return {
       id: collab.id,
       email: collab.email,
+      userId: collab.userId,
       createdAt: collab.createdAt,
       displayName: null,
       avatar: null,

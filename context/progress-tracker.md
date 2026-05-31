@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Establish the collaborative canvas component framework with dynamic node mapping, custom cursor synchronization, and canvas persistence.
+- Implement and integrate the full AI design agent pipeline: Gemini-powered prompt interpretation, real-time Liveblocks canvas mutation, AI presence/status visibility, and Trigger.dev background task orchestration.
 
 ## Completed
 
@@ -42,6 +42,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - `21-canvas-autosave.md`: Added canvas autosave and load. Installed `@vercel/blob` (via pnpm). Reused Prisma `canvasJsonPath` for blob URL metadata. Created `PUT`/`GET /api/projects/[projectId]/canvas` (Blob upload + Prisma reference; owner/collaborator access). Added `hooks/use-canvas-autosave.ts` (1.5s debounce), `hooks/use-canvas-load.ts` (skips when room already has nodes/edges), and `hooks/use-canvas-save-status.tsx` for navbar status. Editor navbar shows Saving/Saved/Error on the Save button. `pnpm run build` passes.
 - `22-design-agent-api.md`: Wired design generation backend via Trigger.dev. Added Prisma `TaskRun` model (`runId`, `projectId`, `userId`, `createdAt`) with migration `20260524000000_add_task_run`. Created `trigger/design-agent.ts` (minimal echo task, no AI yet). Added `POST /api/ai/design` (auth, project access, triggers task, stores `TaskRun`, returns `runId`) and `POST /api/ai/design/token` (ownership check, run-scoped public token). Shared parsing helpers in `lib/design-agent.ts`. `npm run build` passes.
+- `23-design-agent-logic.md`: Implemented full AI design agent — `trigger/design-agent.ts` task uses Gemini via `@ai-sdk/google`, reads canvas state via `getCanvasSnapshotFromRoom`, applies actions (add/delete/move/resize/update node, add/delete edge) through `mutateFlow`. AI presence (cursor + thinking) and status feed broadcast to all Liveblocks participants. Created `lib/design-agent-ai.ts`, `lib/design-agent-actions.ts`, `lib/design-agent-constants.ts`, `lib/design-agent-liveblocks.ts`, `lib/canvas-flow.ts`, `hooks/use-design-agent.ts` (Trigger.dev real-time subscription), `components/editor/ai-status-feed.tsx` (Liveblocks event listener). Updated `liveblocks.config.ts` typed events/presence. `npm run build` passes.
+- `27-spec-generation-flow.md`: Implemented AI-powered spec generation backend. Installed `zod` (v4). Created `lib/spec-agent.ts` with Zod schemas for spec request/token validation. Created `trigger/generate-spec.ts` — `generateSpec` task that accepts `projectId`, `roomId`, `chatHistory`, `nodes`, and `edges`, validates input with Zod, uses Gemini via `@ai-sdk/google` to generate a Markdown technical spec, and updates run metadata for realtime tracking. Created `POST /api/ai/spec` (auth, resolves project from `roomId`, triggers task, stores `TaskRun`, returns `runId`) and `POST /api/ai/spec/token` (ownership check via `TaskRun`, run-scoped public access token with 1h TTL). `npm run build` passes.
 - `share-dialog-avatar-fix`: Fixed contributor avatars missing in Share dialog. Root cause: `clerk.users.getUserList()` returns `{ data: User[], totalCount: number }` but code accessed it as `User[]` — `(users as any)?.[0]` was always `undefined`, making `avatar` and `displayName` `null`. Changed to `data[0]` access with proper typing. Also fixed `size-13` → `size-10` (invalid Tailwind v4 class). TypeScript clean.
 - `drag-drop-offset-fix`: Fixed dropped nodes appearing below cursor by compensating for node dimensions in `onDrop` — position is now offset by `-width/2, -height/2` so nodes center on the cursor.
 - `connector-hitarea-fix`: Increased connection handle size from 10px to 14px, added border-2, hover scale, accent color change, and crosshair cursor for easier grabbing.
@@ -57,10 +59,55 @@ Update this file whenever the current phase, active feature, or implementation s
   - **DeleteProjectDialog.tsx**: Removed redundant CSS classes overlapping with `variant="destructive3d"`; removed unused `React` import
   - **ShareDialog.tsx**: Replaced flat green inline styling with `variant="primary3d"`; removed unused `React` import
 
+  - `25-sidebar-chat-feed.md`: Implemented real-time room chat in AI sidebar using a separate Liveblocks `ai-chat` feed, ensuring user-to-user collaboration is decoupled from AI status updates. `npm run build` passes.
+  - `26-ai-chat-functional.md`: Wired up AI sidebar chat functionality end-to-end. Refactored `useDesignAgent` hook to remove local message state and added `resetRun` for lifecycle management. AI responses are now broadcast to the Liveblocks `ai-chat` feed on run completion/failure, ensuring cross-client chat updates. All messages (user + AI) use the Liveblocks broadcast event pattern as the single source of truth. Applied spec-styled chat bubbles (user: `#62C073` green background with white text, AI: dark elevated background), green-accent submit button with spinner state, and a compact status strip above the input showing real-time AI status with an animated indicator. Errors appear inline in the chat feed. `npm run build` passes.
+
+- `28-spec-persistence-download.md`: Added `ProjectSpec` Prisma model (`prisma/models/project-spec.prisma`) with `id`, `projectId`, `filePath`, `createdAt`, and cascade delete. Created migration `20260528000000_add_project_spec`. Updated `trigger/generate-spec.ts` to upload generated Markdown to Vercel Blob (at `specs/{projectId}/{specId}.md`) and persist the Blob URL in a `ProjectSpec` record. Created `GET /api/projects/[projectId]/specs/[specId]/download` route that authenticates the user, verifies project access, confirms spec ownership, fetches the Blob content, and returns it as a downloadable Markdown attachment (handles 401/404/502). `pnpm run build` passes.
+
+- `29-spec-ui-integration.md`: Integrated spec generation results into the editor. Created `GET /api/projects/[projectId]/specs` to list specs for a project (auth + project access check). Installed `react-markdown` and `remark-gfm` for Markdown rendering. Built `components/editor/specs-tab-content.tsx` — live spec list in the Specs tab showing date-stamped items with click-to-preview and one-click download. Built `components/editor/spec-preview-dialog.tsx` — modal that fetches spec content via the download endpoint, renders it as Markdown in a scrollable area, and includes a download action. Updated `components/editor/ai-assistant-sidebar.tsx` to replace the static demo card with the live SpecsTabContent component. `pnpm run build` passes.
+
+- `current-issues.md` (API fix): Fixed 500 error on `GET /api/projects/[projectId]/specs` by adding try/catch with `console.error` logging around the entire route handler. Removed `filePath` (Blob URL) from the Prisma select to avoid exposing URLs. Fixed the disabled "Generate Spec" button — wired it to fetch current canvas state via `GET /api/projects/[projectId]/canvas`, trigger `POST /api/ai/spec` with nodes/edges, subscribe to real-time run progress via `useRealtimeRun`, and auto-refresh the spec list on completion. Added loading states, error display, and "Generating…" spinner on the button. `pnpm run build` passes.
+
+- `current-issues.md` (DB migration fix): Applied pending migration `20260528000000_add_project_spec` via `prisma migrate deploy` to create the missing `ProjectSpec` table. Regenerated Prisma client with `prisma generate`. Database schema is now up to date (3/3 migrations applied), resolving the `P2021` error on `GET /api/projects/[projectId]/specs`.
+
+- `current-issues.md` (canvas 502 fix v2): Fixed `getProjectAccess()` in `lib/project-access.ts` — wrapped `currentUser()` in try/catch so a Clerk API failure doesn't crash the entire auth flow (was causing 6.5s timeouts). Changed canvas GET route to gracefully degrade: blob fetch failures/fetch errors/stale URLs now return `{ nodes: [], edges: [] }` with a `console.warn` instead of 502. The Liveblocks room holds the current canvas state, so empty canvas is a safe no-op fallback. Made spec generation in `components/editor/specs-tab-content.tsx` fall back to empty canvas when the canvas API is unreachable — spec generation works with an empty canvas. `pnpm run build` passes.
+
+- `current-issues.md` (3 fixes): Fixed Liveblocks auth timeout — removed `currentUser()` (slow Clerk API call), removed `getOrCreateRoom()` (unnecessary), added `runtime = "nodejs"`. Fixed nested `<button>` hydration error in `specs-tab-content.tsx` — converted outer `<button>` to `<div role="button">` with keyboard handler. Fixed spec download 502 timeout in download route — added `runtime = "nodejs"`, 10s `AbortController` timeout on blob fetch, try/catch error handling. `pnpm run build` passes.
+
+- `current-issues.md` (spec preview & download fixes): Added `content` field to `ProjectSpec` model + migration. Created missing `GET /api/projects/[projectId]/specs/[specId]` route. Updated `trigger/generate-spec.ts` to store content in DB. Fixed download route to serve from DB with blob fallback + HTML content validation (`looksLikeHtml()`). Changed `spec-preview-dialog.tsx` to fetch JSON from spec detail route. Changed `specs-tab-content.tsx` download button from `<a>` tag click to `fetch()` + `Blob` + `URL.createObjectURL()` with error handling. `pnpm run build` passes.
+
+- `spec-modal-and-generation-improvements.md`: Redesigned `spec-preview-dialog.tsx` — widened to `max-w-6xl w-[95vw] h-[90vh]`, added sticky header with icon/title/subtitle, moved Download and Close into the header bar as `Button` components, replaced fixed-height ScrollArea with full-height flex layout, added document-reader prose layout (`max-w-4xl mx-auto px-12 py-10`). Rewrote `trigger/generate-spec.ts` — added `extractNodes()` and `extractEdges()` helpers that resolve node IDs to labels so connections appear as `"API Gateway → User Service"` instead of raw IDs; added `buildArchitectureDescription()` and `buildSpecPrompt()` that produce a fully structured 10-section prompt (Executive Summary → Risks & Recommendations); added empty-canvas guard that throws before calling AI; upgraded model to `gemini-2.5-flash-preview-05-20`. Added client-side empty-canvas guard in `specs-tab-content.tsx`. `pnpm run build` passes.
+- `collaborator-access-fix`: Fixed collaborator "Access Denied" issue. Root cause: `ProjectCollaborator` stored only `email` — access checks depended on `currentUser()` Clerk API call which could fail/timeout, locking out collaborators. Added `userId String?` field to schema + migration. Updated `addProjectCollaborator` to look up and store Clerk userId. Updated `checkProjectAccess`/`getProjectWithAccess`/`fetchUserProjects`/collaborators GET route to match by `userId` first (no API call), with email as fallback for legacy records. Collaborators now gain access without any Clerk API dependency.
+
+- `Spec Sizing & Generation Live Sync`: Solved three key editor modal and pipeline issues:
+  - **Live Canvas State Integration**: Created a React context `CanvasStateContext` and provider `CanvasStateProvider` (in `hooks/use-canvas-state-context.tsx`). Wrapped workspace layout within the provider, and registered a `useEffect` inside `ClientCanvas.tsx` to continuously sync live nodes and edges. Updated `SpecsTabContent.tsx` to read directly from this context first, with a database fallback, which completely eliminates false "empty canvas" errors at generation time.
+  - **Spec Preview Sizing & Layout**: Overrode the default `sm:max-w-lg` constraint in `spec-preview-dialog.tsx` by setting responsive width and maximum width properties (`w-[98vw] max-w-[1600px] sm:max-w-[1600px] h-[95vh]`), providing a gorgeous near full-screen document reader layout.
+  - **Duplicate Close Control Suppression**: Added `showCloseButton={false}` to the `DialogContent` container inside `spec-preview-dialog.tsx`, preventing shadcn's default injected Radix Close button from rendering a second 'X' icon.
+  - Added robust debug logging (`CANVAS_SOURCE`, `NODE_COUNT`, `NODE_LABELS`) directly before spec generation. Verified full compilation with zero errors via `tsc --noEmit`.
+
+- `current-issues.md` (project access Prisma query fix): Removed brittle collaborator `userId` filters from Prisma relation queries in project access paths. `checkProjectAccess()` and `getProjectWithAccess()` now fetch the project with collaborators and verify owner access, stored collaborator user IDs, and normalized email fallback in TypeScript. The project list and collaborator list API no longer query `ProjectCollaborator.userId` in Prisma `where` clauses, preventing `Unknown argument userId` validation errors while preserving owner and collaborator access.
+
 ## In Progress
 
 - none currently
 
+## Recently Completed
+
+- `current-issues.md` (presence identity fix): Fixed collaborator names and avatars showing as generic "Collaborator" in presence indicators. Root cause: `POST /api/liveblocks-auth` hardcoded `displayName: "Collaborator"` and `avatarUrl: null` in the Liveblocks session `userInfo`. Now fetches the actual Clerk user profile via `currentUser()` and resolves the display name with priority: fullName → firstName → username → email username → "Collaborator" fallback. Avatar URL is passed through from `user.imageUrl`. Remote collaborators, cursor labels, and participant lists now display real names and profile pictures.
+
+- `current-issues.md` (markdown rendering fix): Installed missing `@tailwindcss/typography` and added `@plugin "@tailwindcss/typography"` to `app/globals.css` — the `prose-*` classes in the spec preview were inert without it, causing markdown to render as unstyled HTML.
+
+- `current-issues.md` (responsive spec preview fix): Fixed content cut off on smaller screens in `spec-preview-dialog.tsx`:
+  - Re-added `sm:max-w-[1600px]` to override shadcn's default `sm:max-w-lg` (512px cap on tablets+)
+  - Changed `h-[95vh]` → `max-h-[95dvh]` with `h-[95vh]` fallback for proper mobile viewport
+  - Removed `overflow-hidden` from body container to prevent ScrollArea clipping
+  - Made padding/gap responsive: `px-4 sm:px-6`, `gap-2 sm:gap-4`, `px-4 sm:px-8 md:px-12`
+  - Added `prose-img:max-w-full prose-img:h-auto` for responsive images
+  - Added `break-words` for long unbroken text
+  - Added `prose-pre:overflow-x-auto`, `prose-table:block prose-table:overflow-x-auto`, `prose-code:break-words` for overflow handling
+  - Added `overflow-x-auto` to ScrollArea
+
 ## Next Up
 
-- `23-design-agent-logic.md`: Implement full AI design agent (Gemini, Liveblocks canvas updates, AI presence/status).
+
+- (pending — next feature spec to be defined)

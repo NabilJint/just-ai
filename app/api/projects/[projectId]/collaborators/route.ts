@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { checkProjectAccess } from "@/lib/project-access";
 import {
   ProjectCollaboratorValidationError,
   getProjectCollaborators,
@@ -28,20 +29,8 @@ export async function GET(
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Simple access check: owner or collaborator
-  const { email } = await (async () => {
-    const { clerkClient } = await import("@clerk/nextjs/server");
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId).catch(() => null);
-    return { email: user?.emailAddresses?.[0]?.emailAddress || null };
-  })();
-
   const hasAccess =
-    project.ownerId === userId ||
-    (email &&
-      (await prisma.projectCollaborator.count({
-        where: { projectId, email },
-      })) > 0);
+    project.ownerId === userId || (await checkProjectAccess(projectId));
 
   if (!hasAccess) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
@@ -81,9 +70,9 @@ export async function POST(
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: any = {};
+  let body: { email?: unknown } = {};
   try {
-    body = await request.json();
+    body = (await request.json()) as { email?: unknown };
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -97,11 +86,11 @@ export async function POST(
   try {
     const collaborator = await addProjectCollaborator(projectId, email);
     return Response.json(collaborator, { status: 201 });
-  } catch (e: any) {
+  } catch (e) {
     if (e instanceof ProjectCollaboratorValidationError) {
       return Response.json({ error: e.message }, { status: 400 });
     }
-    if (e?.code === "P2002") {
+    if (e && typeof e === "object" && "code" in e && e.code === "P2002") {
       return Response.json({ error: "Already invited" }, { status: 409 });
     }
     return Response.json({ error: "Server error" }, { status: 500 });
@@ -134,9 +123,9 @@ export async function DELETE(
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: any = {};
+  let body: { email?: unknown } = {};
   try {
-    body = await request.json();
+    body = (await request.json()) as { email?: unknown };
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }

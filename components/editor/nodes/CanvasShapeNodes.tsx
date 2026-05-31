@@ -316,7 +316,7 @@ export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
 
   // Resize end handler to sync back the new dimensions to data.size and node width/height
   const handleResizeEnd = useCallback(
-    (_event: any, params: { width: number; height: number }) => {
+    (_event: unknown, params: { width: number; height: number }) => {
       setNodes((nodes) =>
         nodes.map((node) => {
           if (node.id === id) {

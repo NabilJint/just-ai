@@ -33,22 +33,20 @@ export async function fetchUserProjects(): Promise<{
     },
   });
 
-  // Fetch shared projects (through collaborators)
+  // Fetch shared projects through collaborator email.
   let userEmail = "";
   try {
     const { clerkClient } = await import("@clerk/nextjs/server");
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-    userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+    userEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() ?? "";
   } catch (error) {
     console.error("Failed to fetch Clerk user email for shared projects", error);
   }
 
-  const sharedProjects = userEmail
+  const sharedCollaborators = userEmail
     ? await prisma.projectCollaborator.findMany({
-        where: {
-          email: userEmail,
-        },
+        where: { email: userEmail },
         include: {
           project: {
             select: {
@@ -67,7 +65,7 @@ export async function fetchUserProjects(): Promise<{
     isOwned: true,
   }));
 
-  const shared: ProjectData[] = sharedProjects
+  const shared: ProjectData[] = sharedCollaborators
     .map((cp) => ({
       ...cp.project,
       isOwned: false,

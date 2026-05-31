@@ -1,18 +1,36 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
+const CURRENT_USER_TIMEOUT_MS = 5_000;
+
+async function tryGetEmail(): Promise<string | null> {
+  try {
+    const user = await Promise.race([
+      currentUser(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("currentUser timed out")),
+          CURRENT_USER_TIMEOUT_MS,
+        ),
+      ),
+    ]);
+    return user?.emailAddresses[0]?.emailAddress?.toLowerCase() || null;
+  } catch (e) {
+    console.warn("currentUser fetch failed (non-fatal)", e);
+    return null;
+  }
+}
+
 export async function getProjectAccess() {
   const { userId } = await auth();
-  const user = await currentUser();
 
-  if (!userId || !user) {
+  if (!userId) {
     return { userId: null, email: null };
   }
 
-  return {
-    userId,
-    email: user.emailAddresses[0]?.emailAddress || null,
-  };
+  const email = await tryGetEmail();
+
+  return { userId, email };
 }
 
 export async function checkProjectAccess(projectId: string) {
@@ -20,25 +38,21 @@ export async function checkProjectAccess(projectId: string) {
 
   if (!userId) return false;
 
-  const project = await prisma.project.findFirst({
-    where: {
-      OR: [
-        { id: projectId, ownerId: userId },
-        {
-          id: projectId,
-          collaborators: {
-            some: {
-              email: {
-                equals: email ?? undefined,
-              },
-            },
-          },
-        },
-      ],
-    },
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { collaborators: true },
   });
 
-  return !!project;
+  if (!project) return false;
+
+  return (
+    project.ownerId === userId ||
+    project.collaborators.some(
+      (collaborator) =>
+        collaborator.userId === userId ||
+        (email !== null && collaborator.email.toLowerCase() === email),
+    )
+  );
 }
 
 export async function getProjectWithAccess(projectId: string) {
@@ -46,21 +60,20 @@ export async function getProjectWithAccess(projectId: string) {
 
   if (!userId) return null;
 
-  return await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      OR: [
-        { ownerId: userId },
-        {
-          collaborators: {
-            some: {
-              email: {
-                equals: email ?? undefined,
-              },
-            },
-          },
-        },
-      ],
-    },
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { collaborators: true },
   });
+
+  if (!project) return null;
+
+  const hasAccess =
+    project.ownerId === userId ||
+    project.collaborators.some(
+      (collaborator) =>
+        collaborator.userId === userId ||
+        (email !== null && collaborator.email.toLowerCase() === email),
+    );
+
+  return hasAccess ? project : null;
 }

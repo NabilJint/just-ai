@@ -31,6 +31,7 @@ export default async function RoomPage({
       project={project}
       ownedProjects={owned}
       sharedProjects={shared}
+      roomId={roomId}
     >
       <div className="h-full w-full">
         <ClientCanvas roomId={roomId} />

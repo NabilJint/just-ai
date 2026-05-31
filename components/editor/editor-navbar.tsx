@@ -92,7 +92,7 @@ export default function EditorNavbar({
             alt="Ghost AI Logo"
             className="size-5 rounded-md"
           />
-          Ghost AI
+          {/* Ghost AI */}
         </span>
       </div>
 
@@ -148,15 +148,7 @@ export default function EditorNavbar({
             <span className="text-sm font-medium">Share</span>
           </Button>
         )}
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: "size-8 rounded-xl border border-border",
-              userButtonTrigger:
-                "rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-duo-green",
-            },
-          }}
-        />
+       
       </div>
     </header>
   );

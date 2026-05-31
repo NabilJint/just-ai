@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import { cn } from "@/lib/utils";
 import { useOthers, useOther } from "@liveblocks/react/suspense";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { type CursorsCursorProps } from "@liveblocks/react-flow";
+import { AI_AGENT_USER_ID } from "@/lib/design-agent-constants";
 
 export function PresenceAvatars() {
   const { user } = useUser();
@@ -11,12 +13,13 @@ export function PresenceAvatars() {
   
   const currentUserId = user?.id;
 
-  const uniqueCollaborators = new Map();
+  const uniqueCollaborators = new Map<string, (typeof others)[number]["info"]>();
   others.forEach((other) => {
-    if (other.info?.userId && other.info.userId !== currentUserId) {
-       if (!uniqueCollaborators.has(other.info.userId)) {
-           uniqueCollaborators.set(other.info.userId, other.info);
-       }
+    const info = other.info;
+    const participantId = info?.userId ?? other.id?.toString();
+    if (!participantId || participantId === currentUserId) return;
+    if (!uniqueCollaborators.has(participantId)) {
+      uniqueCollaborators.set(participantId, info);
     }
   });
 
@@ -29,24 +32,36 @@ export function PresenceAvatars() {
     <div className="absolute top-4 right-4 z-40 flex items-center gap-2 p-1.5 rounded-2xl bg-bg-elevated/90 backdrop-blur-sm border border-border shadow-lg">
       {collaborators.length > 0 && (
         <div className="flex items-center -space-x-2 mr-1">
-          {visibleCollaborators.map((collaborator) => (
-            <div
-              key={collaborator.userId}
-              className="relative size-[25px] rounded-xl ring-2 ring-bg-elevated overflow-hidden bg-bg-muted"
-            >
-              {collaborator.avatarUrl ? (
-                <img
-                  src={collaborator.avatarUrl}
-                  alt={collaborator.displayName ?? "Collaborator"}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center w-full h-full text-xs font-medium text-text-primary uppercase">
-                  {collaborator.displayName?.charAt(0)}
-                </div>
-              )}
-            </div>
-          ))}
+          {visibleCollaborators.map((collaborator) => {
+            const isAi = collaborator?.userId === AI_AGENT_USER_ID;
+            return (
+              <div
+                key={collaborator?.userId ?? "unknown"}
+                className={cn(
+                  "relative size-[25px] rounded-xl ring-2 ring-bg-elevated overflow-hidden bg-bg-muted",
+                  isAi && "ring-accent-ai/60",
+                )}
+                title={collaborator?.displayName ?? undefined}
+              >
+                {collaborator?.avatarUrl ? (
+                  <img
+                    src={collaborator.avatarUrl}
+                    alt={collaborator.displayName ?? "Collaborator"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "flex items-center justify-center w-full h-full text-xs font-medium uppercase",
+                      isAi ? "text-accent-ai-text" : "text-text-primary",
+                    )}
+                  >
+                    {collaborator?.displayName?.charAt(0) ?? "?"}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {overflowCount > 0 && (
             <div className="relative size-8 rounded-xl ring-2 ring-bg-elevated overflow-hidden bg-bg-muted flex items-center justify-center text-xs font-medium text-text-primary">
               +{overflowCount}
@@ -75,8 +90,11 @@ export function CustomCursor({ connectionId }: CursorsCursorProps) {
   const other = useOther(connectionId, (u) => u);
   if (!other) return null;
 
-  const { cursorColor, displayName } = other.info || {};
+  const { cursorColor, displayName, userId } = other.info || {};
   if (!cursorColor) return null;
+
+  const isAi = userId === AI_AGENT_USER_ID;
+  const isThinking = Boolean(other.presence?.isThinking);
 
   return (
     <div className="pointer-events-none relative transition-transform">
@@ -97,10 +115,14 @@ export function CustomCursor({ connectionId }: CursorsCursorProps) {
         />
       </svg>
       <div
-        className="absolute top-5 left-5 rounded-md px-2 py-0.5 text-xs font-semibold text-white shadow-sm whitespace-nowrap"
+        className={cn(
+          "absolute top-5 left-5 rounded-md px-2 py-0.5 text-xs font-semibold text-white shadow-sm whitespace-nowrap",
+          isAi && "ring-1 ring-accent-ai-text/50",
+        )}
         style={{ backgroundColor: cursorColor }}
       >
         {displayName}
+        {isThinking ? " · thinking" : ""}
       </div>
     </div>
   );

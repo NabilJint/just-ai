@@ -35,8 +35,6 @@ class SimpleErrorBoundary extends React.Component<
   }
 }
 import {
-  LiveblocksProvider,
-  RoomProvider,
   ClientSideSuspense,
   useCanRedo,
   useCanUndo,
@@ -59,11 +57,15 @@ import ShapePanel from "./ShapePanel";
 import { CanvasShapeNode } from "./nodes/CanvasShapeNodes";
 import { CanvasEdgeComponent } from "./edges/CanvasEdge";
 import { PresenceAvatars, CustomCursor } from "./presence";
+import { AiStatusFeed } from "./ai-status-feed";
 import StarterTemplatesModal from "./starter-templates-modal";
 import { type CanvasTemplate } from "./starter-templates";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useCanvasAutosave } from "@/hooks/use-canvas-autosave";
 import { useCanvasLoad } from "@/hooks/use-canvas-load";
+import { useAiRoomStatus } from "@/hooks/use-ai-room-status";
+import { useAiRoomContext } from "@/hooks/use-ai-room-context";
+import { useCanvasState } from "@/hooks/use-canvas-state-context";
 import { generateNodeId } from "@/lib/node-id";
 import {
   DEFAULT_NODE_COLOR,
@@ -311,6 +313,7 @@ function CanvasFlow({
       </ReactFlow>
 
       <PresenceAvatars />
+      <AiStatusFeed />
 
       <div className="absolute bottom-28 left-6 z-10">
         <div className="flex items-center gap-1 rounded-full border border-border bg-bg-elevated/90 px-2 py-2 text-text-secondary backdrop-blur-sm">
@@ -382,6 +385,18 @@ function CanvasFlow({
   );
 }
 
+function AiStatusBridge() {
+  const { isRunning, status } = useAiRoomStatus();
+  const { setAiRunning, setLatestStatus } = useAiRoomContext();
+
+  useEffect(() => {
+    setAiRunning(isRunning);
+    setLatestStatus(status);
+  }, [isRunning, status, setAiRunning, setLatestStatus]);
+
+  return null;
+}
+
 function CanvasInner({ projectId }: { projectId: string }) {
   const {
     nodes,
@@ -397,6 +412,12 @@ function CanvasInner({ projectId }: { projectId: string }) {
       nodes: { initial: [] },
       edges: { initial: [] },
     });
+
+  const { setCanvasState } = useCanvasState();
+
+  useEffect(() => {
+    setCanvasState(nodes, edges);
+  }, [nodes, edges, setCanvasState]);
 
   const [isAutosaveReady, setIsAutosaveReady] = useState(false);
 
@@ -432,6 +453,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
 
   return (
     <ReactFlowProvider>
+      <AiStatusBridge />
       <CanvasFlow {...flowProps} />
     </ReactFlowProvider>
   );
@@ -439,23 +461,16 @@ function CanvasInner({ projectId }: { projectId: string }) {
 
 export default function ClientCanvas({ roomId }: ClientCanvasProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
-      <RoomProvider
-        id={roomId}
-        initialPresence={{ cursor: null, isThinking: false }}
+    <SimpleErrorBoundary fallback={<div className="p-4">Canvas error</div>}>
+      <ClientSideSuspense
+        fallback={
+          <div className="h-full w-full flex items-center justify-center">
+            Connecting…
+          </div>
+        }
       >
-        <SimpleErrorBoundary fallback={<div className="p-4">Canvas error</div>}>
-          <ClientSideSuspense
-            fallback={
-              <div className="h-full w-full flex items-center justify-center">
-                Connecting…
-              </div>
-            }
-          >
-            <CanvasInner projectId={roomId} />
-          </ClientSideSuspense>
-        </SimpleErrorBoundary>
-      </RoomProvider>
-    </LiveblocksProvider>
+        <CanvasInner projectId={roomId} />
+      </ClientSideSuspense>
+    </SimpleErrorBoundary>
   );
 }

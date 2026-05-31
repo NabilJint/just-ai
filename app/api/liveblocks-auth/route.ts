@@ -2,6 +2,8 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { checkProjectAccess } from "@/lib/project-access";
 import { getCursorColor, getLiveblocksClient } from "@/lib/liveblocks";
 
+export const runtime = "nodejs";
+
 interface LiveblocksAuthRequest {
   projectId?: unknown;
   room?: unknown;
@@ -13,6 +15,16 @@ function getRequestedProjectId(body: LiveblocksAuthRequest) {
     : typeof body.room === "string"
       ? body.room
       : null;
+}
+
+function resolveDisplayName(user: NonNullable<Awaited<ReturnType<typeof currentUser>>>): string {
+  if (user.fullName) return user.fullName;
+  if (user.firstName) return user.firstName;
+  if (user.username) return user.username;
+  if (user.emailAddresses[0]?.emailAddress) {
+    return user.emailAddresses[0].emailAddress.split("@")[0];
+  }
+  return "Collaborator";
 }
 
 export async function POST(request: Request) {
@@ -41,19 +53,21 @@ export async function POST(request: Request) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const user = await currentUser();
-  const displayName =
-    user?.fullName ?? user?.firstName ?? user?.emailAddresses[0]?.emailAddress ?? "Collaborator";
-  const avatarUrl = user?.imageUrl ?? null;
+  let displayName = "Collaborator";
+  let avatarUrl: string | null = null;
+
+  try {
+    const user = await currentUser();
+    if (user) {
+      displayName = resolveDisplayName(user);
+      avatarUrl = user.imageUrl ?? null;
+    }
+  } catch (e) {
+    console.warn("Failed to resolve user identity for presence", e);
+  }
+
   const cursorColor = getCursorColor(userId);
   const liveblocks = getLiveblocksClient();
-
-  await liveblocks.getOrCreateRoom(projectId, {
-    defaultAccesses: [],
-    metadata: {
-      projectId,
-    },
-  });
 
   const session = liveblocks.prepareSession(userId, {
     userInfo: {
