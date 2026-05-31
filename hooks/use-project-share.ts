@@ -33,8 +33,9 @@ export function useProjectShare(projectId: string): UseProjectShareReturn {
       }
       const data = await res.json();
       setCollaborators(data);
-    } catch (err: any) {
-      setError(err.message || "An error occurred while fetching collaborators");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred while fetching collaborators";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -42,6 +43,7 @@ export function useProjectShare(projectId: string): UseProjectShareReturn {
 
   useEffect(() => {
     if (projectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       refreshCollaborators();
     }
   }, [projectId, refreshCollaborators]);
@@ -62,8 +64,9 @@ export function useProjectShare(projectId: string): UseProjectShareReturn {
 
       await refreshCollaborators();
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      return { success: false, error: message };
     } finally {
       setInviteLoading(false);
     }
@@ -85,8 +88,9 @@ export function useProjectShare(projectId: string): UseProjectShareReturn {
 
       await refreshCollaborators();
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      return { success: false, error: message };
     } finally {
       setRemovingEmail(null);
     }

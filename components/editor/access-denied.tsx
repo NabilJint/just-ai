@@ -11,7 +11,7 @@ export default function AccessDenied() {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Access Denied</h1>
         <p className="text-muted-foreground max-w-xs">
-          You don't have permission to access this project or the project no longer exists.
+          You don&apos;t have permission to access this project or the project no longer exists.
         </p>
         <div className="pt-4">
           <Button asChild variant="outline">

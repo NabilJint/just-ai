@@ -1,0 +1,11 @@
+model ProjectSpec {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  filePath  String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, filePath])
+  @@index([projectId, createdAt])
+}

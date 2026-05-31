@@ -1,0 +1,104 @@
+{
+  "build": {
+  },
+  "cliPackageVersion": "4.4.6",
+  "config": {
+    "dirs": [
+      "./trigger"
+    ],
+    "project": "proj_cshpvzfnwkstarzfaazn"
+  },
+  "configPath": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-EE1Zkv/Documents/ghost-ai/trigger.config.mjs",
+  "contentHash": "6197f314b24c88c935556b801a2cdd06",
+  "customConditions": [
+  ],
+  "deploy": {
+    "env": {
+    }
+  },
+  "environment": "dev",
+  "externals": [
+    {
+      "name": "import-in-the-middle",
+      "version": "1.11.0"
+    }
+  ],
+  "files": [
+    {
+      "entry": "trigger/example.ts",
+      "out": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-EE1Zkv/Documents/ghost-ai/trigger/example.mjs"
+    }
+  ],
+  "indexWorkerEntryPoint": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-EE1Zkv/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-index-worker.mjs",
+  "otelImportHook": {
+    "include": [
+    ]
+  },
+  "outputHashes": {
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-index-worker.mjs": "3JK7Yg3XHGk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-index-worker.mjs.map": "aaOO2Dudsxw",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs": "iuV7DQ+cMAA",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs.map": "T+qko51PeLo",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger.config.mjs": "PiwZuOYC+Dk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger.config.mjs.map": "kpCvhtlOYEk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger/example.mjs": "AH3P3r+z2Z4",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger/example.mjs.map": "zmT6Bf4QdyA",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-6L3DBTMP.mjs": "pnVzG1Cs3O8",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-6L3DBTMP.mjs.map": "JZmVvNwm4gI",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-7JDNMTFL.mjs": "mXjAsUHM7t0",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-7JDNMTFL.mjs.map": "pwtlqW5LG6A",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-CTDAWCTK.mjs": "pjmNPzgoVKg",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-CTDAWCTK.mjs.map": "922Py0nEmuE",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-FUV6SSYK.mjs": "Mad/q9MtDLc",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-FUV6SSYK.mjs.map": "9IFojZihDyA",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-J2ZQGE6X.mjs": "pG8gmBP3yOk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-J2ZQGE6X.mjs.map": "Z+Bg7aaChKg",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-V6SRTHE6.mjs": "CV1tlRwWaeI",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-V6SRTHE6.mjs.map": "ofJbcl4So38",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-YWPWLCTP.mjs": "ABVt9Vl1wiA",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/chunk-YWPWLCTP.mjs.map": "9Pwea9eleHQ",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/crypto.node-5HPPZ5PO.mjs": "Hosiis4RK5g",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/crypto.node-5HPPZ5PO.mjs.map": "f+DirqJ/vQY",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/crypto.node-JYCJFDVT.mjs": "j/NseNbBSuk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/crypto.node-JYCJFDVT.mjs.map": "0b4tlwmkM3g",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/esm-HF64XN43.mjs": "/ASyNSMg03k",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/esm-HF64XN43.mjs.map": "CYqZQcavdAI",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/esm-PSZIC5RF.mjs": "a0IxvD1oSwU",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/esm-PSZIC5RF.mjs.map": "uuvelps5tsQ",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-bsd-CQRW3DPG.mjs": "244piLhuSIA",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-bsd-CQRW3DPG.mjs.map": "dIKKZ8MMNl8",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-darwin-VNZGFVBR.mjs": "960+ecDyqc0",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-darwin-VNZGFVBR.mjs.map": "xJrfS7fTZLk",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-linux-TYVV4ZLT.mjs": "Mu4BzqEE9PY",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-linux-TYVV4ZLT.mjs.map": "iGLn8Cz4sPg",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-unsupported-5IRX77GI.mjs": "Ca/HGT5QNLM",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-unsupported-5IRX77GI.mjs.map": "L7KXQNW7Eqw",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-win-KAUWWGCN.mjs": "9b/UQB1v9SE",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/getMachineId-win-KAUWWGCN.mjs.map": "O6wx6Q5hFOU",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/s2s-3ZRIPYYD.mjs": "+6xdP4AKcy8",
+    "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/s2s-3ZRIPYYD.mjs.map": "cMXIJWjI/3w"
+  },
+  "outputPath": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-EE1Zkv",
+  "packageVersion": "4.4.6",
+  "runWorkerEntryPoint": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-EE1Zkv/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs",
+  "runtime": "node",
+  "sources": {
+    "package.json": {
+      "contentHash": "39cf1c5028865fd017cf583a6bb812ce",
+      "contents": "eJyNVcty4yAQvPsrVDoH9LBsxz7lsN/hKgQTmTUGFSDFrlT+fQuEBOvYm72J6UYzPT0jfa6yLJfkAvkhy7uTMhYRnr+46AjacCUdUOIKl1O013wk1tGtHsCHDNW8tyY/ZJ+rLMuynMHobkm42sw9v0zhduCCLcB0CpCxRNsFmk4BElx6BIx/ClGredeBPoRU4eizrbLsy9fFoAfJQFIOSXFvhCPDzkWnVCe87OMal3i3n1/91hIDaOCFBkJ96mOFG1wtOBWgz4Wr9Lfx8A6v8eYOHni4Wc2tc5jgI7RC0bMpqOAwKTuucbXH9SOSVAx+oMQqf+Cgd6E+/osYar+j9ZqbCykII70FjfouaH9N9AVOou0fONKDtPwCaLBcmOdsuFqQbhQRoRQE6Gn+Jt+iLZowfl18Q4wTobrZBFxtnhEN1UoIRDSQwK5xVT5lC2UXWvOMZUlrYur1QgtzihmMgXlS6jxRG9zg7UOmYecHjBE0BVG0QrUerfE66d315uxOZ9ipinaSyeOta+F+aSIVxBg0Es2JpIDIYE9Kc3vz3BLvcMI015C2ilGmLMhxyrfDTUwnBsoZoHSlqm0s1y2TC1dbXEeJYcRecZ3s0NzpZTGX7i4vd2MbvQnjoC7fIUu4+OCSoQvobp4pV1byDRl/Pf6MzHepMUWvjKUm2BgtvPWQrHBd3iFRXonvsaRR+0fQrCeBwwfSBe9iiCr5zjv0pMt+y76vXyLwb2E2ON/guo7d98X5P4EHN76Hq6/VHy0lsaE="
+    },
+    "trigger.config.ts": {
+      "contentHash": "f6da6ed58d87b0c81ea0acd274e213d6",
+      "contents": "eJxVjsFqwzAQRO/6iq1PLRjHTaAH5dKQuMGF0mJ8KyGo1sootSQjrU0g+N+LHQea0y5vdnZGm9Z5ggtIVNri1lmlaxhAeWcgeiWv6xp9IrFfBPkbrRnD8+SQqETX0J3v8cIAWu9OWBEflwpDSND2SVnk+31WHL+Kz/dsWx6L7O0hZgBS+8DhO0oWc1J0GLER513nBWlnOaxe0nSEHslrDBzGFAC04qdBmdsd9hyUaALGkzA3u91N3zZEaFoKHFbxjWpbaoOuo9x+BA7L9BozO+605/SfqERFznNYXsEwjiFmw9Oa/QHrQmSs"
+    },
+    "trigger/example.ts": {
+      "contentHash": "cd525e8537ee0fc04740e2446f29f3b1",
+      "contents": "eJxFjs1uwjAQhO9+isGnRKLp3VEIxz4AUs8WXlwL/6C1aYsiv3vlENHrfvvNjAu3xAULis5XVFw4BchjYWct8WDo+z2bqxyFoN/185xiLvgi79NnYm9OzZtWvVsE4IyCXPHbT+NyLwC+RwWdH/GM7qYfPmmjsCBQztrSrJALu2hRe0wHtBhsRSFbTNicYRMwz5AfreO59/S/difHl508DT7ZLmTbP69M5c4RCywTFRetWgtqo3Uvaj+KPxGbWNg="
+    },
+    "tsconfig.json": {
+      "contentHash": "02fc19ad21338c2ab820a70136310db4",
+      "contents": "eJxtUU1Lw0AQvedXLHMMbaJehJ4E6cFiEfRYimyyQ7t2v9id1EjJf5fdJNVET8O892b2vdlLxhjUVjup0L84ktYEWLFLxhhjQNwfkGDFYP12d3N7D4seV7KCFduBsBoWLJZCEnpeKYw9BoMtwX5Qc6Xs5yauJd/gAIaTdM+yejxifZox5GVNU8zYtZYzDMPWikbhkyH01k1JnajofDAzwV8xWNXEsFFRNUYo9KPER/KMm2DNdtzya7MMVnFC0XOzVB+hjRs98pqWsRmHTO1RoyGupgNONQeZTr5LABtO36fmOkVIAQa4S3U8reN0/PkvxuChzNPPFGUO+2wc6KI8mlCNwOtbae8SzbkQBYXRap6X+d/2mqSIQyV9OQzlTNpTAs//06nVFGKS5B+wvRoCYwW+6+Gm+6zLvgEbXbUJ"
+    }
+  },
+  "target": "dev"
+}

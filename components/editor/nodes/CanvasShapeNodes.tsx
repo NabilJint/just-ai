@@ -1,10 +1,12 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Handle, Position, NodeResizer, useReactFlow, type NodeProps } from "@xyflow/react";
 import {
   DEFAULT_NODE_COLOR,
   isCanvasNodeShape,
   NODE_COLORS,
+  NODE_COLOR_PALETTE,
   type CanvasNode,
   type CanvasNodeColor,
   type CanvasNodeShape,
@@ -12,7 +14,18 @@ import {
 } from "@/types/canvas";
 
 const HANDLE_CLASS =
-  "h-2.5 w-2.5 border border-bg-base bg-text-primary opacity-0 transition-opacity group-hover:opacity-100";
+  "h-5 w-5 relative border-2 border-bg-base bg-text-primary opacity-0 transition-all duration-150 group-hover:opacity-100 hover:!opacity-100 hover:scale-125 hover:border-accent-primary hover:bg-accent-primary cursor-crosshair before:content-[''] before:absolute before:-inset-[8px] before:rounded-full";
+
+const COLOR_LABELS = [
+  "Neutral Dark",
+  "Blue",
+  "Purple",
+  "Orange",
+  "Red",
+  "Pink",
+  "Green",
+  "Teal",
+];
 
 interface ShapeBodyProps {
   shape: CanvasNodeShape;
@@ -20,23 +33,83 @@ interface ShapeBodyProps {
   color: CanvasNodeColor;
   label?: string;
   compact?: boolean;
+  isEditing?: boolean;
+  onLabelChange?: (val: string) => void;
+  onEditingClose?: () => void;
 }
 
 function getShapeColor(shape: CanvasNodeShape, color?: CanvasNodeColor) {
   return color ?? NODE_COLORS[shape] ?? DEFAULT_NODE_COLOR;
 }
 
-function ShapeLabel({ label, color }: { label?: string; color: CanvasNodeColor }) {
-  if (!label) {
-    return null;
+function ShapeLabel({
+  label,
+  color,
+  isEditing = false,
+  onLabelChange,
+  onEditingClose,
+}: {
+  label?: string;
+  color: CanvasNodeColor;
+  isEditing?: boolean;
+  onLabelChange?: (val: string) => void;
+  onEditingClose?: () => void;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Auto-focus and place cursor at the end when editing starts
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      const length = textareaRef.current.value.length;
+      textareaRef.current.setSelectionRange(length, length);
+    }
+  }, [isEditing]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onEditingClose?.();
+      } else if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        textareaRef.current?.blur();
+      }
+    },
+    [onEditingClose]
+  );
+
+  const handleBlur = useCallback(() => {
+    onEditingClose?.();
+  }, [onEditingClose]);
+
+  if (isEditing) {
+    return (
+      <textarea
+        ref={textareaRef}
+        value={label ?? ""}
+        onChange={(e) => onLabelChange?.(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        rows={2}
+        className="nodrag nopan absolute inset-x-3 top-1/2 -translate-y-1/2 w-[calc(100%-24px)] bg-transparent border-none outline-none resize-none text-center text-xs font-medium focus:ring-0 focus:outline-none p-0 m-0 overflow-hidden leading-tight"
+        style={{ color: color.text }}
+        placeholder="Enter label..."
+      />
+    );
   }
+
+  const isPlaceholder = !label;
+  const displayText = label || "Double-click to edit";
 
   return (
     <span
-      className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 truncate text-center text-xs font-medium"
+      className={`absolute inset-x-3 top-1/2 -translate-y-1/2 text-center text-xs font-medium leading-tight select-none pointer-events-none line-clamp-3 ${
+        isPlaceholder ? "opacity-35 italic" : ""
+      }`}
       style={{ color: color.text }}
     >
-      {label}
+      {displayText}
     </span>
   );
 }
@@ -47,12 +120,28 @@ export function ShapeBody({
   color,
   label,
   compact = false,
+  isEditing = false,
+  onLabelChange,
+  onEditingClose,
 }: ShapeBodyProps) {
   const labelText = compact ? undefined : label;
   const style = {
     width: size.width,
     height: size.height,
     color: color.text,
+  };
+
+  const renderLabel = () => {
+    if (compact) return null;
+    return (
+      <ShapeLabel
+        label={labelText}
+        color={color}
+        isEditing={isEditing}
+        onLabelChange={onLabelChange}
+        onEditingClose={onEditingClose}
+      />
+    );
   };
 
   if (shape === "diamond") {
@@ -62,7 +151,7 @@ export function ShapeBody({
           className="absolute inset-[13%] rotate-45 border"
           style={{ background: color.fill, borderColor: color.stroke }}
         />
-        <ShapeLabel label={labelText} color={color} />
+        {renderLabel()}
       </div>
     );
   }
@@ -77,7 +166,7 @@ export function ShapeBody({
           borderColor: color.stroke,
         }}
       >
-        <ShapeLabel label={labelText} color={color} />
+        {renderLabel()}
       </div>
     );
   }
@@ -92,7 +181,23 @@ export function ShapeBody({
           borderColor: color.stroke,
         }}
       >
-        <ShapeLabel label={labelText} color={color} />
+        {renderLabel()}
+      </div>
+    );
+  }
+
+  if (shape === "hexagon") {
+    return (
+      <div className="relative" style={style}>
+        <div
+          className="absolute inset-0 border"
+          style={{
+            background: color.fill,
+            borderColor: color.stroke,
+            clipPath: "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)",
+          }}
+        />
+        {renderLabel()}
       </div>
     );
   }
@@ -142,23 +247,7 @@ export function ShapeBody({
             strokeWidth="1"
           />
         </svg>
-        <ShapeLabel label={labelText} color={color} />
-      </div>
-    );
-  }
-
-  if (shape === "hexagon") {
-    return (
-      <div className="relative" style={style}>
-        <div
-          className="absolute inset-0 border"
-          style={{
-            background: color.fill,
-            borderColor: color.stroke,
-            clipPath: "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)",
-          }}
-        />
-        <ShapeLabel label={labelText} color={color} />
+        {renderLabel()}
       </div>
     );
   }
@@ -172,7 +261,7 @@ export function ShapeBody({
         borderColor: color.stroke,
       }}
     >
-      <ShapeLabel label={labelText} color={color} />
+      {renderLabel()}
     </div>
   );
 }
@@ -188,25 +277,162 @@ export function ShapePreview({
   return <ShapeBody shape={shape} size={size} color={color} compact />;
 }
 
-export function CanvasShapeNode({ type, data }: NodeProps<CanvasNode>) {
+export function CanvasShapeNode(props: NodeProps<CanvasNode>) {
+  const { type, data, selected, id } = props;
   const nodeType = type ?? "";
   const shape: CanvasNodeShape = isCanvasNodeShape(nodeType)
     ? nodeType
     : data.shape ?? "rectangle";
-  const size = data.size ?? { width: 160, height: 90 };
+
+  // Use measured width/height from props if present, fallback to data.size
+  const width = props.width ?? data.size?.width ?? (shape === "circle" ? 112 : 160);
+  const height = props.height ?? data.size?.height ?? (shape === "circle" ? 112 : 90);
+  const size = { width, height };
   const color = getShapeColor(shape, data.color);
 
+  const { setNodes } = useReactFlow();
+  const [isEditing, setIsEditing] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const handleColorChange = useCallback(
+    (newColor: CanvasNodeColor) => {
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                color: newColor,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [id, setNodes]
+  );
+
+  // Resize end handler to sync back the new dimensions to data.size and node width/height
+  const handleResizeEnd = useCallback(
+    (_event: unknown, params: { width: number; height: number }) => {
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            return {
+              ...node,
+              width: params.width,
+              height: params.height,
+              data: {
+                ...node.data,
+                size: {
+                  width: params.width,
+                  height: params.height,
+                },
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [id, setNodes]
+  );
+
+  // Label change handler
+  const handleLabelChange = useCallback(
+    (newLabel: string) => {
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                label: newLabel,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [id, setNodes]
+  );
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  }, []);
+
   return (
-    <div className="group relative">
-      <ShapeBody shape={shape} size={size} color={color} label={data.label} />
-      <Handle id="source-top" type="source" position={Position.Top} className={HANDLE_CLASS} />
-      <Handle id="source-right" type="source" position={Position.Right} className={HANDLE_CLASS} />
-      <Handle id="source-bottom" type="source" position={Position.Bottom} className={HANDLE_CLASS} />
-      <Handle id="source-left" type="source" position={Position.Left} className={HANDLE_CLASS} />
+    <div className="group relative" onDoubleClick={handleDoubleClick}>
+      {selected && (
+        <div 
+          className="nodrag nopan absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 flex items-center gap-1.5 p-1.5 rounded-full bg-bg-elevated/95 backdrop-blur border border-border-default shadow-lg shadow-black/40 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2"
+        >
+          {NODE_COLOR_PALETTE.map((paletteColor, idx) => {
+            const isColorActive = color.fill === paletteColor.fill;
+            const title = COLOR_LABELS[idx] ?? "";
+
+            return (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleColorChange(paletteColor);
+                }}
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-150 border border-white/10 relative focus:outline-none cursor-pointer ${
+                  isColorActive 
+                    ? "scale-110 ring-2 ring-white border-transparent" 
+                    : "hover:scale-105"
+                }`}
+                style={{
+                  background: paletteColor.fill,
+                  boxShadow: hoveredIndex === idx ? `0 0 8px 1.5px ${paletteColor.text}` : undefined
+                }}
+                onMouseEnter={() => setHoveredIndex(idx)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                title={title}
+              >
+                <span 
+                  className="w-1.5 h-1.5 rounded-full transition-transform" 
+                  style={{ 
+                    background: paletteColor.text,
+                    transform: isColorActive ? "scale(1.2)" : "scale(1)"
+                  }} 
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <NodeResizer
+        isVisible={selected}
+        minWidth={shape === "circle" ? 60 : 80}
+        minHeight={shape === "circle" ? 60 : 40}
+        onResizeEnd={handleResizeEnd}
+        handleClassName="h-6 w-6 bg-bg-surface border-2 border-border-subtle rounded-sm hover:border-accent-primary hover:bg-accent-primary hover:scale-125 transition-all duration-150"
+        lineClassName="border-accent-primary/40 border-dashed"
+      />
+      <ShapeBody
+        shape={shape}
+        size={size}
+        color={color}
+        label={data.label}
+        isEditing={isEditing}
+        onLabelChange={handleLabelChange}
+        onEditingClose={() => setIsEditing(false)}
+      />
       <Handle id="target-top" type="target" position={Position.Top} className={HANDLE_CLASS} />
       <Handle id="target-right" type="target" position={Position.Right} className={HANDLE_CLASS} />
       <Handle id="target-bottom" type="target" position={Position.Bottom} className={HANDLE_CLASS} />
       <Handle id="target-left" type="target" position={Position.Left} className={HANDLE_CLASS} />
+      <Handle id="source-top" type="source" position={Position.Top} className={HANDLE_CLASS} />
+      <Handle id="source-right" type="source" position={Position.Right} className={HANDLE_CLASS} />
+      <Handle id="source-bottom" type="source" position={Position.Bottom} className={HANDLE_CLASS} />
+      <Handle id="source-left" type="source" position={Position.Left} className={HANDLE_CLASS} />
     </div>
   );
 }

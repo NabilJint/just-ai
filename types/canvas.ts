@@ -64,6 +64,18 @@ export const NODE_COLORS: Record<CanvasNodeShape, CanvasNodeColor> = {
   },
 };
 
+export const NODE_COLOR_PALETTE: CanvasNodeColor[] = [
+  { fill: "var(--node-palette-neutral-fill)", text: "var(--node-palette-neutral-text)", stroke: "var(--node-palette-neutral-stroke)", minimap: "var(--node-palette-neutral-stroke)" }, // Neutral dark
+  { fill: "var(--node-palette-blue-fill)", text: "var(--node-palette-blue-text)", stroke: "var(--node-palette-blue-stroke)", minimap: "var(--node-palette-blue-stroke)" }, // Blue
+  { fill: "var(--node-palette-purple-fill)", text: "var(--node-palette-purple-text)", stroke: "var(--node-palette-purple-stroke)", minimap: "var(--node-palette-purple-stroke)" }, // Purple
+  { fill: "var(--node-palette-orange-fill)", text: "var(--node-palette-orange-text)", stroke: "var(--node-palette-orange-stroke)", minimap: "var(--node-palette-orange-stroke)" }, // Orange
+  { fill: "var(--node-palette-red-fill)", text: "var(--node-palette-red-text)", stroke: "var(--node-palette-red-stroke)", minimap: "var(--node-palette-red-stroke)" }, // Red
+  { fill: "var(--node-palette-pink-fill)", text: "var(--node-palette-pink-text)", stroke: "var(--node-palette-pink-stroke)", minimap: "var(--node-palette-pink-stroke)" }, // Pink
+  { fill: "var(--node-palette-green-fill)", text: "var(--node-palette-green-text)", stroke: "var(--node-palette-green-stroke)", minimap: "var(--node-palette-green-stroke)" }, // Green
+  { fill: "var(--node-palette-teal-fill)", text: "var(--node-palette-teal-text)", stroke: "var(--node-palette-teal-stroke)", minimap: "var(--node-palette-teal-stroke)" }, // Teal
+];
+
+
 export function isCanvasNodeShape(value: string): value is CanvasNodeShape {
   return NODE_SHAPES.includes(value as CanvasNodeShape);
 }
@@ -79,7 +91,11 @@ export type CanvasNodeType = CanvasNodeShape | "canvasNode";
 
 export type CanvasNode = Node<CanvasNodeData, CanvasNodeType>;
 
-export type CanvasEdge = Edge & {
+export interface CanvasEdgeData extends Record<string, unknown> {
+  label?: string;
+}
+
+export type CanvasEdge = Edge<CanvasEdgeData> & {
   type?: "canvasEdge";
 };
 

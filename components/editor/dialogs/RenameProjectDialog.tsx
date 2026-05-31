@@ -82,7 +82,7 @@ export default function RenameProjectDialog() {
           <Button
             onClick={() => confirmRename()}
             disabled={!projectName || !projectSlug || isLoading}
-            className="bg-duo-green hover:bg-duo-green/90 text-bg-base font-bold rounded-xl px-6 shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:pointer-events-none font-feather uppercase tracking-wider text-caption"
+            variant="primary3d"
           >
             {isLoading ? "Saving..." : "Save Changes"}
           </Button>

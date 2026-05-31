@@ -36,6 +36,7 @@ export default function ProjectSidebar({
   );
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveTab(isCurrentProjectShared ? "shared" : "my-projects");
   }, [currentProjectId, isCurrentProjectShared]);
 

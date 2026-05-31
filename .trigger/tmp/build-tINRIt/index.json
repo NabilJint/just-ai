@@ -1,0 +1,29 @@
+{
+  "configPath": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger.config.mjs",
+  "customConditions": [
+  ],
+  "prompts": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node",
+  "runtimeVersion": "22.20.0",
+  "tasks": [
+    {
+      "entryPoint": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/Documents/ghost-ai/trigger/example.mjs",
+      "filePath": "trigger/example.ts",
+      "id": "hello-world",
+      "maxDuration": 3600,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 2000
+      }
+    }
+  ],
+  "timings": {
+    "trigger/example.ts": 0.68912499999999
+  },
+  "workerEntryPoint": "/Users/MAC/Documents/ghost-ai/.trigger/tmp/build-tINRIt/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs"
+}

@@ -6,9 +6,47 @@ import {
   PanelLeftClose,
   MessageCircle,
   Share2,
+  LayoutTemplate,
+  Save,
+  Loader2,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
+import {
+  useCanvasSaveStatus,
+  type CanvasSaveStatus,
+} from "@/hooks/use-canvas-save-status";
+
+function saveStatusLabel(status: CanvasSaveStatus) {
+  switch (status) {
+    case "saving":
+      return "Saving…";
+    case "saved":
+      return "Saved";
+    case "error":
+      return "Save failed";
+    default:
+      return "Save";
+  }
+}
+
+function SaveStatusIcon({ status }: { status: CanvasSaveStatus }) {
+  if (status === "saving") {
+    return <Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />;
+  }
+
+  if (status === "saved") {
+    return <Check className="size-4 mr-2" aria-hidden="true" />;
+  }
+
+  if (status === "error") {
+    return <AlertCircle className="size-4 mr-2" aria-hidden="true" />;
+  }
+
+  return <Save className="size-4 mr-2" aria-hidden="true" />;
+}
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean;
@@ -16,6 +54,7 @@ interface EditorNavbarProps {
   projectName?: string;
   onToggleAiChat?: () => void;
   onShare?: () => void;
+  onOpenTemplates?: () => void;
 }
 
 export default function EditorNavbar({
@@ -24,7 +63,10 @@ export default function EditorNavbar({
   projectName = "Untitled System Design",
   onToggleAiChat,
   onShare,
+  onOpenTemplates,
 }: EditorNavbarProps) {
+  const { status: saveStatus } = useCanvasSaveStatus();
+
   return (
     <header className="h-14 w-full flex items-center justify-between px-4 border-b border-border bg-card select-none shrink-0 z-40">
       {/* Left Section */}
@@ -50,7 +92,7 @@ export default function EditorNavbar({
             alt="Ghost AI Logo"
             className="size-5 rounded-md"
           />
-          Ghost AI
+          {/* Ghost AI */}
         </span>
       </div>
 
@@ -63,37 +105,50 @@ export default function EditorNavbar({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          disabled
+          className="text-text-secondary rounded-xl cursor-default h-9 px-3 disabled:opacity-100"
+          title={saveStatusLabel(saveStatus)}
+          aria-live="polite"
+        >
+          <SaveStatusIcon status={saveStatus} />
+          <span className="text-sm font-medium">{saveStatusLabel(saveStatus)}</span>
+        </Button>
+        {onOpenTemplates && (
+          <Button
+            variant="ghost"
+            onClick={onOpenTemplates}
+            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer h-9 px-3"
+            title="Starter Templates"
+          >
+            <LayoutTemplate className="size-4 mr-2" />
+            <span className="text-sm font-medium">Templates</span>
+          </Button>
+        )}
         {onToggleAiChat && (
           <Button
             variant="ghost"
-            size="icon"
             onClick={onToggleAiChat}
-            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer size-9"
+            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer h-9 px-3"
             title="Toggle AI assistant"
           >
-            <MessageCircle className="size-5" />
+            <MessageCircle className="size-4 mr-2" />
+            <span className="text-sm font-medium">AI</span>
           </Button>
         )}
         {onShare && (
           <Button
             variant="ghost"
-            size="icon"
             onClick={onShare}
-            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer size-9"
+            className="text-text-secondary hover:text-text-primary rounded-xl cursor-pointer h-9 px-3"
             title="Share project"
           >
-            <Share2 className="size-5" />
+            <Share2 className="size-4 mr-2" />
+            <span className="text-sm font-medium">Share</span>
           </Button>
         )}
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: "size-8 rounded-xl border border-border",
-              userButtonTrigger:
-                "rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-duo-green",
-            },
-          }}
-        />
+       
       </div>
     </header>
   );

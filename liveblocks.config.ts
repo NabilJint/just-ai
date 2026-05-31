@@ -9,6 +9,7 @@ declare global {
     };
 
     // The Storage tree for the room, for useMutation, useStorage, etc.
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Storage: {
       // Example, a conflict-free list
       // animals: LiveList<string>;
@@ -26,12 +27,24 @@ declare global {
     };
 
     // Custom events, for useBroadcastEvent, useEventListener
-    RoomEvent: {};
-      // Example has two events, using a union
-      // | { type: "PLAY" } 
-      // | { type: "REACTION"; emoji: "🔥" };
+    RoomEvent:
+      | {
+          type: "ai-status";
+          phase: "start" | "processing" | "complete" | "error";
+          message: string;
+          runId?: string;
+          at: number;
+        }
+      | {
+          type: "ai-chat";
+          sender: string;
+          role: "user" | "assistant" | "system";
+          content: string;
+          at: number;
+        };
 
     // Custom metadata set on threads, for useThreads, useCreateThread, etc.
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     ThreadMetadata: {
       // Example, attaching coordinates to a thread
       // x: number;
@@ -39,6 +52,7 @@ declare global {
     };
 
     // Custom room info set with resolveRoomsInfo, for useRoomInfo
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     RoomInfo: {
       // Example, rooms with a title and url
       // title: string;
