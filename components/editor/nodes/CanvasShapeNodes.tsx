@@ -188,15 +188,21 @@ export function ShapeBody({
 
   if (shape === "hexagon") {
     return (
-      <div className="relative" style={style}>
-        <div
-          className="absolute inset-0 border"
-          style={{
-            background: color.fill,
-            borderColor: color.stroke,
-            clipPath: "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)",
-          }}
-        />
+      <div className="relative " style={style}>
+        <svg
+          // className="absolute  h-full w-full"
+          className="absolute inset-0 h-full w-full overflow-visible"
+          // viewBox={`0 0 ${size.width} ${size.height}`}
+          role="img"
+          aria-hidden="true"
+        >
+          <polygon
+            points={`${size.width * 0.25},0 ${size.width * 0.75},0 ${size.width},${size.height * 0.5} ${size.width * 0.75},${size.height} ${size.width * 0.25},${size.height} 0,${size.height * 0.5}`}
+            fill={color.fill}
+            stroke={color.stroke}
+            strokeWidth={1}
+          />
+        </svg>
         {renderLabel()}
       </div>
     );
@@ -206,10 +212,9 @@ export function ShapeBody({
     const ellipseHeight = Math.max(12, Math.min(24, size.height * 0.22));
 
     return (
-      <div className="relative" style={style}>
+      <div className="relative " style={style}>
         <svg
           className="absolute inset-0 h-full w-full overflow-visible"
-          viewBox={`0 0 16 15`}
           // viewBox={`0 0 ${size.width} ${size.height}`}
           role="img"
           aria-hidden="true"

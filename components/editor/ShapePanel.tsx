@@ -41,6 +41,7 @@ const SHAPES: {
     label: "Cylinder",
     size: { width: 144, height: 104 },
     previewSize: { width: 28, height: 24 },
+    // previewSize: { width: 38, height: 14 },
   },
   {
     key: "hexagon",
