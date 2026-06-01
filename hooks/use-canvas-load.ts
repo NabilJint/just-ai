@@ -26,15 +26,15 @@ export function useCanvasLoad({
 }: UseCanvasLoadOptions) {
   const setSaveStatus = useCanvasSaveStatusSetter();
   const hasAttemptedLoadRef = useRef(false);
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+
+  // Keep refs in sync with latest nodes/edges from Liveblocks
+  nodesRef.current = nodes;
+  edgesRef.current = edges;
 
   useEffect(() => {
     if (isLoading || hasAttemptedLoadRef.current) {
-      return;
-    }
-
-    if (nodes.length > 0 || edges.length > 0) {
-      hasAttemptedLoadRef.current = true;
-      onReady();
       return;
     }
 
@@ -56,12 +56,25 @@ export function useCanvasLoad({
         const savedNodes = data.nodes ?? [];
         const savedEdges = data.edges ?? [];
 
-        if (savedNodes.length === 0 && savedEdges.length === 0) {
-          return;
-        }
+        // Use refs to get the latest nodes/edges in case Liveblocks Storage
+        // resolved after the effect was scheduled (defensive — with suspense
+        // mode this shouldn't happen, but refs are cheap insurance).
+        const currentNodes = nodesRef.current;
+        const currentEdges = edgesRef.current;
 
-        onNodesChange(savedNodes.map((item) => ({ type: "add", item })));
-        onEdgesChange(savedEdges.map((item) => ({ type: "add", item })));
+        // Remove all existing nodes/edges from Liveblocks Storage, then add
+        // the Blob snapshot — all in a single atomic change so undo/redo
+        // history treats the entire hydration as one step.
+        onNodesChange([
+          ...currentNodes.map((n) => ({ type: "remove" as const, id: n.id })),
+          ...savedNodes.map((item) => ({ type: "add" as const, item })),
+        ]);
+
+        onEdgesChange([
+          ...currentEdges.map((e) => ({ type: "remove" as const, id: e.id })),
+          ...savedEdges.map((item) => ({ type: "add" as const, item })),
+        ]);
+
         setSaveStatus("saved");
       } catch {
         setSaveStatus("error");

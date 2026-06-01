@@ -93,6 +93,12 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Recently Completed
 
+- `current-issues.md` (shape preview occupancy refinement): Enlarged the shape picker tile budget and adjusted compact-only cylinder/hexagon SVG geometry so both fill roughly 90% of the available preview area. Actual canvas node rendering remains unchanged; the overscaling applies only to picker previews. `npm run build` validation pending.
+
+- `current-issues.md` (shape icon scaling): Standardized cylinder and hexagon preview rendering with uniform `viewBox="0 0 100 100"`, `preserveAspectRatio="xMidYMid meet"`, and flex centering. Fixed non-compact hexagon to use SVG polygon instead of CSS clipPath so the full border renders. Set both shapes to 38×38 preview containers for consistent visual footprint.
+
+- `canvas-loading-blob-sot.md`: Fixed canvas initialization to use Vercel Blob as the source of truth instead of Liveblocks Storage. Root cause: `useCanvasLoad` had an early return that skipped the Blob fetch when `useLiveblocksFlow` had already loaded nodes/edges from Liveblocks Storage. Fix: `useCanvasLoad` now always fetches from `GET /api/projects/[projectId]/canvas`, clears existing nodes/edges from Liveblocks Storage, then hydrates with Blob data — all in a single atomic change for clean undo/redo history.
+
 - `current-issues.md` (presence identity fix): Fixed collaborator names and avatars showing as generic "Collaborator" in presence indicators. Root cause: `POST /api/liveblocks-auth` hardcoded `displayName: "Collaborator"` and `avatarUrl: null` in the Liveblocks session `userInfo`. Now fetches the actual Clerk user profile via `currentUser()` and resolves the display name with priority: fullName → firstName → username → email username → "Collaborator" fallback. Avatar URL is passed through from `user.imageUrl`. Remote collaborators, cursor labels, and participant lists now display real names and profile pictures.
 
 - `current-issues.md` (markdown rendering fix): Installed missing `@tailwindcss/typography` and added `@plugin "@tailwindcss/typography"` to `app/globals.css` — the `prose-*` classes in the spec preview were inert without it, causing markdown to render as unstyled HTML.
