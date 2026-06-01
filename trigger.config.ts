@@ -4,10 +4,6 @@ export default defineConfig({
   project: process.env.TRIGGER_PROJECT_REF!,
   dirs: ["./trigger"],
   runtime: "node-22",
-  packageManager: {
-    name: "pnpm",
-    version: "10.26.1",
-  },
   maxDuration: 3600,
   retries: {
     enabledInDev: false,
