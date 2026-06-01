@@ -52,9 +52,14 @@
     "onlyBuiltDependencies": [
       "@clerk/shared",
       "@prisma/engines",
+      "bufferutil",
+      "core-js",
       "esbuild",
       "prisma",
-      "sharp"
+      "protobufjs",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate"
     ]
   },
   "devDependencies": {
