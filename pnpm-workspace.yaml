@@ -1,0 +1,13 @@
+ignoredBuiltDependencies:
+  - '@clerk/shared'
+  - core-js
+  - prisma
+  - protobufjs
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - '@prisma/engines'
+  - bufferutil
+  - esbuild
+  - sharp
+  - utf-8-validate
