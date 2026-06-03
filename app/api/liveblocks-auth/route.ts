@@ -69,13 +69,29 @@ export async function POST(request: Request) {
   const cursorColor = getCursorColor(userId);
   const liveblocks = getLiveblocksClient();
 
+  // Validate avatar URL: must be HTTPS
+  const validatedAvatar =
+    avatarUrl && avatarUrl.startsWith("https://") ? avatarUrl : null;
+
+  // Liveblocks validates the UserMeta.info type strictly, so the extra
+  // runtime keys (avatar, profileImage) are added via `as any` to keep
+  // the type clean while still passing them through at runtime for broad
+  // compatibility with presence.tsx's resolveAvatarUrl.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userInfo: any = {
+    userId,
+    displayName,
+    avatarUrl: validatedAvatar,
+    ...(validatedAvatar != null && {
+      avatar: validatedAvatar,
+      profileImage: validatedAvatar,
+      photo: validatedAvatar,
+    }),
+    cursorColor,
+  };
+
   const session = liveblocks.prepareSession(userId, {
-    userInfo: {
-      userId,
-      displayName,
-      avatarUrl,
-      cursorColor,
-    },
+    userInfo,
   });
 
   session.allow(projectId, session.FULL_ACCESS);

@@ -4,21 +4,141 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { useOthers, useOther } from "@liveblocks/react/suspense";
 import { useUser } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { type CursorsCursorProps } from "@liveblocks/react-flow";
 import { AI_AGENT_USER_ID } from "@/lib/design-agent-constants";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * C1 — Resolve the first available avatar URL from all supported field names.
+ * Priority order: avatar, profileImage, photo, avatarUrl.
+ *
+ * Uses indexed access so runtime data with extra fields (set via REST API or
+ * other code paths like design-agent-liveblocks.ts) is found even when those
+ * fields aren't part of the strict Liveblocks UserMeta type.
+ */
+function resolveAvatarUrl(info: Record<string, unknown>): string | null {
+  const candidates = ["avatar", "profileImage", "photo", "avatarUrl"];
+  for (const key of candidates) {
+    const val = info[key];
+    if (typeof val === "string" && val.length > 0) {
+      return val;
+    }
+  }
+  return null;
+}
+
+/**
+ * C5 — Accept absolute HTTPS URLs or same-origin relative paths.
+ */
+function isValidHttpsUrl(url: string): boolean {
+  if (url.startsWith("/")) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Avatar sub-component (handles single avatar rendering with error tracking)
+// ---------------------------------------------------------------------------
+
+interface AvatarCellProps {
+  info: {
+    userId?: string | null;
+    displayName?: string | null;
+  } & Record<string, unknown>;
+  isAi: boolean;
+  onLoadError: (userId: string) => void;
+  /** Set of user IDs whose images have previously failed to load */
+  failedAvatars: Set<string>;
+}
+
+const AVATAR_SIZE_PX = 28;
+
+function AvatarCell({ info, isAi, onLoadError, failedAvatars }: AvatarCellProps) {
+  const userId = info.userId ?? "unknown";
+  const rawUrl = resolveAvatarUrl(info);
+
+  // C5 — Only render <img> if URL is valid HTTPS and hasn't failed before
+  const shouldRenderImg =
+    rawUrl !== null &&
+    isValidHttpsUrl(rawUrl) &&
+    !failedAvatars.has(userId);
+
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden bg-bg-muted ring-2 ring-bg-elevated",
+        isAi && "ring-accent-ai/60",
+      )}
+      style={{ width: AVATAR_SIZE_PX, height: AVATAR_SIZE_PX, borderRadius: "50%" }}
+      title={info.displayName ?? undefined}
+    >
+      {shouldRenderImg ? (
+        <img
+          src={rawUrl!}
+          alt={info.displayName ?? "Collaborator"}
+          // C3 — Never stretch or distort, always fill
+          className="w-full h-full object-cover"
+          // C2 — Track runtime load failures
+          onError={() => onLoadError(userId)}
+        />
+      ) : (
+        // C1 — Fallback circle
+        <div
+          className={cn(
+            "flex items-center justify-center w-full h-full text-xs font-medium select-none",
+            isAi ? "text-accent-ai-text" : "text-text-primary",
+          )}
+        >
+          {info.displayName?.charAt(0)?.toUpperCase() ?? "?"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PresenceAvatars (top-level component)
+// ---------------------------------------------------------------------------
 
 export function PresenceAvatars() {
   const { user } = useUser();
   const others = useOthers();
-  
   const currentUserId = user?.id;
 
+  // C2 — Track images that have failed to load so we don't retry
+  const [failedAvatars, setFailedAvatars] = React.useState<Set<string>>(new Set());
+
+  const handleLoadError = React.useCallback((userId: string) => {
+    setFailedAvatars((prev) => {
+      if (prev.has(userId)) return prev; // already tracked
+      const next = new Set(prev);
+      next.add(userId);
+      return next;
+    });
+  }, []);
+
+  // C4 — Build a deduplicated map, always merging (never replacing) user objects.
+  // Liveblocks already merges presence internally; this loop simply dedupes by userId.
   const uniqueCollaborators = new Map<string, (typeof others)[number]["info"]>();
+
   others.forEach((other) => {
     const info = other.info;
     const participantId = info?.userId ?? other.id?.toString();
     if (!participantId || participantId === currentUserId) return;
-    if (!uniqueCollaborators.has(participantId)) {
+
+    // C4 — If this participant already exists, merge new fields into existing
+    const existing = uniqueCollaborators.get(participantId);
+    if (existing) {
+      uniqueCollaborators.set(participantId, { ...existing, ...info });
+    } else {
       uniqueCollaborators.set(participantId, info);
     }
   });
@@ -35,35 +155,20 @@ export function PresenceAvatars() {
           {visibleCollaborators.map((collaborator) => {
             const isAi = collaborator?.userId === AI_AGENT_USER_ID;
             return (
-              <div
+              <AvatarCell
                 key={collaborator?.userId ?? "unknown"}
-                className={cn(
-                  "relative size-[25px] rounded-xl ring-2 ring-bg-elevated overflow-hidden bg-bg-muted",
-                  isAi && "ring-accent-ai/60",
-                )}
-                title={collaborator?.displayName ?? undefined}
-              >
-                {collaborator?.avatarUrl ? (
-                  <img
-                    src={collaborator.avatarUrl}
-                    alt={collaborator.displayName ?? "Collaborator"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className={cn(
-                      "flex items-center justify-center w-full h-full text-xs font-medium uppercase",
-                      isAi ? "text-accent-ai-text" : "text-text-primary",
-                    )}
-                  >
-                    {collaborator?.displayName?.charAt(0) ?? "?"}
-                  </div>
-                )}
-              </div>
+                info={collaborator}
+                isAi={isAi}
+                failedAvatars={failedAvatars}
+                onLoadError={handleLoadError}
+              />
             );
           })}
           {overflowCount > 0 && (
-            <div className="relative size-8 rounded-xl ring-2 ring-bg-elevated overflow-hidden bg-bg-muted flex items-center justify-center text-xs font-medium text-text-primary">
+            <div
+              className="flex items-center justify-center bg-bg-muted ring-2 ring-bg-elevated text-xs font-medium text-text-primary select-none"
+              style={{ width: AVATAR_SIZE_PX, height: AVATAR_SIZE_PX, borderRadius: "50%" }}
+            >
               +{overflowCount}
             </div>
           )}
@@ -71,6 +176,16 @@ export function PresenceAvatars() {
       )}
 
       {collaborators.length > 0 && <div className="h-6 w-px bg-border mx-1" />}
+
+      <UserButton
+        appearance={{
+          elements: {
+            avatarBox: "size-7 rounded-full ring-2 ring-bg-elevated",
+            userButtonTrigger:
+              "rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+          },
+        }}
+      />
     </div>
   );
 }

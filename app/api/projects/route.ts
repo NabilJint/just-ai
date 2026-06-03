@@ -1,9 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { buildSharedProjectFilter } from "@/lib/project-helpers";
 
 /**
  * GET /api/projects
- * List all projects owned by the authenticated user.
+ * List all projects the authenticated user can see (owned + shared).
+ * Shared project entries include an `isShared` flag.
  */
 export async function GET() {
   const { userId } = await auth();
@@ -12,12 +14,29 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const projects = await prisma.project.findMany({
+  const owned = await prisma.project.findMany({
     where: { ownerId: userId },
     orderBy: { createdAt: "desc" },
   });
 
-  return Response.json(projects);
+  const sharedCollabs = await prisma.projectCollaborator.findMany({
+    where: {
+      OR: await buildSharedProjectFilter(userId),
+    },
+    include: {
+      project: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Deduplicate projects that appear in both owned and shared
+  const ownedIds = new Set(owned.map((p) => p.id));
+  const shared = sharedCollabs
+    .map((c) => c.project)
+    .filter((p) => !ownedIds.has(p.id))
+    .map((p) => ({ ...p, isShared: true }));
+
+  return Response.json([...owned, ...shared]);
 }
 
 /**

@@ -33,32 +33,24 @@ export async function fetchUserProjects(): Promise<{
     },
   });
 
-  // Fetch shared projects through collaborator email.
-  let userEmail = "";
-  try {
-    const { clerkClient } = await import("@clerk/nextjs/server");
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    userEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() ?? "";
-  } catch (error) {
-    console.error("Failed to fetch Clerk user email for shared projects", error);
-  }
-
-  const sharedCollaborators = userEmail
-    ? await prisma.projectCollaborator.findMany({
-        where: { email: userEmail },
-        include: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-              ownerId: true,
-            },
-          },
+  // Fetch shared projects through collaborator email OR userId.
+  // Using both ensures projects are found even when the invited email
+  // differs from the user's current primary email.
+  const sharedCollaborators = await prisma.projectCollaborator.findMany({
+    where: {
+      OR: await buildSharedProjectFilter(userId),
+    },
+    include: {
+      project: {
+        select: {
+          id: true,
+          name: true,
+          ownerId: true,
         },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   const owned: ProjectData[] = ownedProjects.map((p) => ({
     ...p,
@@ -75,3 +67,24 @@ export async function fetchUserProjects(): Promise<{
 
   return { owned, shared };
 }
+
+/**
+ * Build the OR filter for finding shared projects: always match by userId,
+ * and also try the user's current email as a fallback.
+ */
+export async function buildSharedProjectFilter(userId: string) {
+  const conditions: { userId?: string; email?: string }[] = [{ userId }];
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const email = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
+    if (email) {
+      conditions.push({ email });
+    }
+  } catch (error) {
+    console.error("Failed to fetch Clerk user email for shared projects", error);
+  }
+  return conditions;
+}
+

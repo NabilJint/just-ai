@@ -93,6 +93,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Recently Completed
 
+- `current-issues.md` (presence avatar stack fix): Fixed the top-right presence indicator collapsing into a plain empty circle when no remote collaborator is connected. `PresenceAvatars` now renders the logged-in user through Clerk's `UserButton`, displays remote collaborators as image avatars with initials fallback, and types the avatar alias fields in `liveblocks.config.ts`.
+
 - `current-issues.md` (shape preview occupancy refinement): Enlarged the shape picker tile budget and adjusted compact-only cylinder/hexagon SVG geometry so both fill roughly 90% of the available preview area. Actual canvas node rendering remains unchanged; the overscaling applies only to picker previews. `npm run build` validation pending.
 
 - `current-issues.md` (shape icon scaling): Standardized cylinder and hexagon preview rendering with uniform `viewBox="0 0 100 100"`, `preserveAspectRatio="xMidYMid meet"`, and flex centering. Fixed non-compact hexagon to use SVG polygon instead of CSS clipPath so the full border renders. Set both shapes to 38×38 preview containers for consistent visual footprint.

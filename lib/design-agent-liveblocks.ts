@@ -46,6 +46,8 @@ export async function setAiPresence(
     userInfo: {
       name: AI_AGENT_DISPLAY_NAME,
       avatar: AI_AGENT_AVATAR_URL,
+      profileImage: AI_AGENT_AVATAR_URL,
+      photo: AI_AGENT_AVATAR_URL,
       color: AI_AGENT_CURSOR_COLOR,
       userId: AI_AGENT_USER_ID,
       displayName: AI_AGENT_DISPLAY_NAME,

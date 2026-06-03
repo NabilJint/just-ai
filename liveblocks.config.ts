@@ -22,6 +22,9 @@ declare global {
         userId: string;
         displayName: string;
         avatarUrl: string | null;
+        avatar?: string;
+        profileImage?: string;
+        photo?: string;
         cursorColor: string;
       };
     };
