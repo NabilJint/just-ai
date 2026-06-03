@@ -11,7 +11,7 @@ const prismaClientSingleton = () => {
 
   if (databaseUrl.startsWith('prisma+postgres://')) {
     // Use Prisma Accelerate
-    return new PrismaClient()
+    return new PrismaClient({ accelerateUrl: databaseUrl })
   } else {
     // Use direct PostgreSQL adapter
     const pool = new pg.Pool({ connectionString: databaseUrl })
